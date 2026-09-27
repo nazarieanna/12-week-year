@@ -878,13 +878,19 @@
 
     /* Sync & Export Operations */
     function applySyncCode() {
-      const val = document.getElementById('syncCodeInput').value.trim();
-      if (val) {
-        appData.syncPairCode = val;
-        saveData();
-        alert('Sync code updated to: ' + val);
-      }
-    }
+  const input = document.getElementById('syncCodeInput');
+  if (!input) return;
+  
+  const val = input.value.trim().toUpperCase();
+  if (!val) {
+    alert('Please enter a valid sync code.');
+    return;
+  }
+
+  appData.syncPairCode = val;
+  saveData();
+  alert('Sync code updated successfully: ' + val);
+}
 
     function copySyncCode() {
       const input = document.getElementById('syncCodeInput');
