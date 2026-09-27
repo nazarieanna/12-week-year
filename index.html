@@ -392,8 +392,8 @@
             <div class="bg-steel-900 p-4 rounded-xl border border-slate-800 space-y-3">
               <label class="text-xs font-bold text-slate-300 block">Unique Device Sync Code</label>
               <div class="flex items-center space-x-2">
-                <input type="text" id="syncCodeInput" class="..." placeholder="Enter Sync Code" />
-                <button onclick="localStorage.setItem('warrior_sync_code', document.getElementById('syncCodeInput').value); location.reload();" class="btn">Apply Code</button>
+                <input type="text" id="syncCodeInput" class="bg-steel-950 border border-slate-800 text-gold-400 text-sm font-mono font-bold rounded-lg p-2.5 flex-1 focus:outline-none focus:border-gold-500" placeholder="Enter Sync Code" />
+                <button onclick="applySyncCode()" class="px-4 py-2.5 bg-crimson-600 hover:bg-crimson-500 text-white text-xs font-bold rounded-lg crimson-glow transition-all">Apply Code</button>
                 <button onclick="copySyncCode()" class="px-4 py-2.5 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
                   <i class="fa-regular fa-copy"></i> Copy
                 </button>
@@ -536,6 +536,17 @@
       renderAll();
       initCharts();
       updateDateBadges();
+      document.getElementById('syncCodeInput').value = appData.syncPairCode;
+      
+      // Restore draft inputs on page load if present
+      const savedTitle = localStorage.getItem('draft_goal_title');
+      const savedMetric = localStorage.getItem('draft_goal_metric');
+      if (savedTitle && document.getElementById('goal-input-title')) {
+        document.getElementById('goal-input-title').value = savedTitle;
+      }
+      if (savedMetric && document.getElementById('goal-input-metric')) {
+        document.getElementById('goal-input-metric').value = savedMetric;
+      }
     };
 
     function generatePairCode() {
@@ -574,6 +585,15 @@
         }
       });
 
+      // Update Mobile Nav styles
+      document.querySelectorAll('nav.md\\:hidden .nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.className = 'nav-btn flex flex-col items-center p-2 text-gold-400';
+        } else {
+          btn.className = 'nav-btn flex flex-col items-center p-2 text-slate-400';
+        }
+      });
+
       // Update Page Title
       const titles = {
         today: "Today's Tactical Execution",
@@ -589,68 +609,59 @@
       }
     }
 
-    /* Daily Task Rollover Logic (Medium Priority Auto-Shift) */
-    function checkDailyRollover() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (appData.lastProcessedDate !== todayStr) {
-        processDailyRollover(todayStr);
-      }
-    }
-
-    function processDailyRolloverManually() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      processDailyRollover(todayStr);
-      renderAll();
-      alert('Day refresh complete! Medium priority tasks rolled over to today.');
-    }
-
-    function processDailyRollover(todayStr) {
-      appData.tasks.forEach(task => {
-        if (!task.completed && task.scheduledDate && task.scheduledDate < todayStr) {
-          if (task.priority === 'medium') {
-            task.scheduledDate = todayStr;
-            task.rolloverCount = (task.rolloverCount || 0) + 1;
-          }
-        }
-      });
-
-      appData.lastProcessedDate = todayStr;
-      saveData();
-    }
-
-    /* Data Persistence */
-    function saveData() {
-      localStorage.setItem(APP_STATE_KEY, JSON.stringify(appData));
-    }
-
+    /* Data Storage Operations */
     function loadData() {
       const saved = localStorage.getItem(APP_STATE_KEY);
       if (saved) {
         try {
           appData = JSON.parse(saved);
-        } catch(e) {
+          if (!appData.syncPairCode) appData.syncPairCode = generatePairCode();
+        } catch (e) {
           console.error("Error parsing stored data", e);
         }
       } else {
-        // Initial warrior sample tactics
-        appData.tasks = [
-          { id: '1', title: 'Complete Morning Warrior Focus Session', priority: 'high', completed: false, week: 1, rolloverCount: 0, scheduledDate: new Date().toISOString().split('T')[0] },
-          { id: '2', title: 'Review 12-Week Strategic Objectives', priority: 'medium', completed: true, week: 1, rolloverCount: 1, scheduledDate: new Date().toISOString().split('T')[0] },
-          { id: '3', title: 'Schedule Strategic Buffer Block', priority: 'low', completed: false, week: 1, rolloverCount: 0, scheduledDate: new Date().toISOString().split('T')[0] }
-        ];
-        appData.goals = [
-          { id: 'g1', title: 'Maintain 85%+ Execution Score Daily', metric: '100% daily tactic completion' }
-        ];
         saveData();
       }
-      document.getElementById('sync-pair-code').value = appData.syncPairCode || generatePairCode();
     }
 
-    /* UI Rendering Functions */
+    function saveData() {
+      localStorage.setItem(APP_STATE_KEY, JSON.stringify(appData));
+    }
+
+    /* Daily Rollover Logic */
+    function checkDailyRollover() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (appData.lastProcessedDate !== todayStr) {
+        processDailyRollover();
+        appData.lastProcessedDate = todayStr;
+        saveData();
+      }
+    }
+
+    function processDailyRolloverManually() {
+      processDailyRollover();
+      appData.lastProcessedDate = new Date().toISOString().split('T')[0];
+      saveData();
+      renderAll();
+    }
+
+    function processDailyRollover() {
+      appData.tasks.forEach(task => {
+        if (!task.completed) {
+          if (task.priority === 'medium') {
+            task.rolledOver = true;
+            task.rolledCount = (task.rolledCount || 0) + 1;
+          }
+        }
+      });
+    }
+
+    /* Render Logic */
     function renderAll() {
       renderTasks();
       renderGoals();
-      updateSummariesAndBadges();
+      renderGoalDropdown();
+      updateSummaries();
     }
 
     function renderTasks() {
@@ -662,69 +673,44 @@
 
       let filtered = appData.tasks.filter(t => {
         if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
-        if (statusFilter === 'completed' && !t.completed) return false;
         if (statusFilter === 'pending' && t.completed) return false;
+        if (statusFilter === 'completed' && !t.completed) return false;
         return true;
       });
 
-      // Sort: High priority first, then rolled medium items
-      filtered.sort((a, b) => {
-        const pOrder = { high: 1, medium: 2, low: 3 };
-        if (pOrder[a.priority] !== pOrder[b.priority]) {
-          return pOrder[a.priority] - pOrder[b.priority];
-        }
-        return (b.rolloverCount || 0) - (a.rolloverCount || 0);
-      });
-
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-8 text-slate-500 text-xs">
-            No tactics found for current selection.
-          </div>`;
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No tactical tasks match the selected filters.</div>`;
         return;
       }
 
       filtered.forEach(task => {
-        const item = document.createElement('div');
-        item.className = `flex items-center justify-between p-3 rounded-xl transition-all ${task.completed ? 'opacity-50 bg-steel-900/30' : 'hover:bg-steel-800/60 bg-steel-900/80'}`;
+        const div = document.createElement('div');
+        div.className = 'p-3 flex items-center justify-between hover:bg-steel-800/40 rounded-lg transition-all group';
         
-        let priorityBadge = '';
-        if (task.priority === 'high') {
-          priorityBadge = `<span class="text-[10px] bg-crimson-600/20 text-crimson-400 border border-crimson-500/30 px-2 py-0.5 rounded font-bold uppercase">High</span>`;
-        } else if (task.priority === 'medium') {
-          priorityBadge = `<span class="text-[10px] bg-gold-500/10 text-gold-400 border border-gold-500/30 px-2 py-0.5 rounded font-bold uppercase">Med</span>`;
-        } else {
-          priorityBadge = `<span class="text-[10px] bg-steel-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded font-bold uppercase">Low</span>`;
-        }
+        const priorityColors = {
+          high: 'text-crimson-500 bg-crimson-900/30 border-crimson-600/40',
+          medium: 'text-gold-400 bg-gold-500/10 border-gold-500/30',
+          low: 'text-slate-400 bg-steel-800 border-slate-700'
+        };
 
-        let rolloverBadge = '';
-        if (task.rolloverCount && task.rolloverCount > 0) {
-          rolloverBadge = `<span class="text-[10px] bg-gold-500/20 text-gold-300 px-2 py-0.5 rounded-full font-extrabold badge-rollover border border-gold-500/30"><i class="fa-solid fa-arrows-rotate text-[9px] mr-1"></i>Rolled x${task.rolloverCount}</span>`;
-        }
+        const badgeText = task.priority.toUpperCase();
 
-        item.innerHTML = `
-          <div class="flex items-center space-x-3 flex-1 min-w-0 pr-3">
-            <button onclick="toggleTaskCompletion('${task.id}')" class="w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.completed ? 'bg-jade-500 border-jade-500 text-slate-950 font-bold' : 'border-slate-700 hover:border-gold-500 text-transparent'}">
-              <i class="fa-solid fa-check text-xs"></i>
-            </button>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</p>
-              <div class="flex items-center space-x-2 mt-1">
-                ${priorityBadge}
-                ${rolloverBadge}
-                <span class="text-[10px] text-slate-500">W${task.week || 1}</span>
-              </div>
-            </div>
+        div.innerHTML = `
+          <div class="flex items-center space-x-3 flex-1 min-w-0 pr-2">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="w-4 h-4 rounded border-slate-700 text-crimson-600 focus:ring-crimson-500 bg-steel-950 cursor-pointer">
+            <span class="text-sm font-medium ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
+            ${task.rolledOver ? `<span class="badge-rollover text-[10px] font-bold px-2 py-0.5 rounded bg-gold-500/20 text-gold-400 border border-gold-500/30"><i class="fa-solid fa-arrows-rotate mr-1"></i>Rolled</span>` : ''}
           </div>
-          <button onclick="deleteTask('${task.id}')" class="text-slate-600 hover:text-crimson-400 p-1 transition-colors">
-            <i class="fa-solid fa-trash-can text-xs"></i>
-          </button>
+          <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${priorityColors[task.priority]}">${badgeText}</span>
+            <button onclick="deleteTask('${task.id}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-crimson-500 p-1 transition-all"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
         `;
-        container.appendChild(item);
+        container.appendChild(div);
       });
     }
 
-    function toggleTaskCompletion(id) {
+    function toggleTask(id) {
       const task = appData.tasks.find(t => t.id === id);
       if (task) {
         task.completed = !task.completed;
@@ -739,24 +725,54 @@
       renderAll();
     }
 
-    /* Modal Management */
-    function openAddTaskModal() {
-      document.getElementById('modal-task').classList.remove('hidden');
-      updateGoalOptionsInModal();
-    }
-    function closeAddTaskModal() {
-      document.getElementById('modal-task').classList.add('hidden');
-    }
-    function openAddGoalModal() {
-      document.getElementById('modal-goal').classList.remove('hidden');
-    }
-    function closeAddGoalModal() {
-      document.getElementById('modal-goal').classList.add('hidden');
+    function renderGoals() {
+      const container = document.getElementById('goals-container');
+      container.innerHTML = '';
+
+      if (appData.goals.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No 12-Week Goals defined yet. Click "Add Goal" above to create one.</div>`;
+        return;
+      }
+
+      appData.goals.forEach(goal => {
+        const goalTasks = appData.tasks.filter(t => t.goalId === goal.id);
+        const completedCount = goalTasks.filter(t => t.completed).length;
+        const totalCount = goalTasks.length;
+        const progressPct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+        const div = document.createElement('div');
+        div.className = 'bg-steel-900 border border-slate-800 rounded-xl p-4 space-y-3';
+        div.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-extrabold text-slate-100 text-sm">${goal.title}</h4>
+              <p class="text-xs text-slate-400 mt-0.5">Metric: ${goal.metric}</p>
+            </div>
+            <button onclick="deleteGoal('${goal.id}')" class="text-slate-500 hover:text-crimson-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Goal Tactics Progress</span>
+              <span class="font-bold text-gold-400">${progressPct}% (${completedCount}/${totalCount})</span>
+            </div>
+            <div class="w-full bg-steel-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div class="bg-gradient-to-r from-crimson-500 to-gold-500 h-full transition-all duration-300" style="width: ${progressPct}%"></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
     }
 
-    function updateGoalOptionsInModal() {
+    function deleteGoal(id) {
+      appData.goals = appData.goals.filter(g => g.id !== id);
+      saveData();
+      renderAll();
+    }
+
+    function renderGoalDropdown() {
       const select = document.getElementById('task-input-goal');
-      select.innerHTML = '<option value="">General Execution</option>';
+      select.innerHTML = `<option value="">General Execution</option>`;
       appData.goals.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.id;
@@ -765,124 +781,140 @@
       });
     }
 
+    function updateSummaries() {
+      const totalTasks = appData.tasks.length;
+      const completedTasks = appData.tasks.filter(t => t.completed).length;
+      const rate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+      const highPriorityCount = appData.tasks.filter(t => t.priority === 'high' && !t.completed).length;
+      const rolledCount = appData.tasks.filter(t => t.rolledOver && !t.completed).length;
+
+      // Update Dashboard Cards
+      document.getElementById('today-tasks-completed').innerText = completedTasks;
+      document.getElementById('today-tasks-total').innerText = `/ ${totalTasks} tasks`;
+      document.getElementById('today-progress-bar').style.width = `${rate}%`;
+      document.getElementById('today-execution-rate').innerText = `${rate}%`;
+      document.getElementById('today-rolled-count').innerText = rolledCount;
+      document.getElementById('today-high-count').innerText = highPriorityCount;
+
+      // Update Sidebar Progress Widget
+      document.getElementById('sidebar-score').innerText = `${rate}%`;
+
+      // Update Summaries Tab Cards
+      document.getElementById('sum-daily-completed').innerText = `${completedTasks} / ${totalTasks}`;
+      document.getElementById('sum-daily-score').innerText = `${rate}%`;
+      document.getElementById('sum-daily-rolled').innerText = rolledCount;
+
+      document.getElementById('sum-weekly-completed').innerText = completedTasks;
+      document.getElementById('sum-weekly-score').innerText = `${rate}%`;
+
+      document.getElementById('sum-monthly-completed').innerText = completedTasks;
+      document.getElementById('sum-monthly-high').innerText = highPriorityCount;
+    }
+
+    /* Modal Operations */
+    function openAddTaskModal() {
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+
+    function closeAddTaskModal() {
+      document.getElementById('modal-task').classList.add('hidden');
+      document.getElementById('task-input-title').value = '';
+    }
+
     function saveTask() {
       const title = document.getElementById('task-input-title').value.trim();
+      if (!title) return;
+
       const priority = document.getElementById('task-input-priority').value;
       const week = parseInt(document.getElementById('task-input-week').value);
       const goalId = document.getElementById('task-input-goal').value;
 
-      if (!title) return alert('Please enter a task title');
-
-      const newTask = {
-        id: Date.now().toString(),
-        title,
-        priority,
-        week,
-        goalId,
+      appData.tasks.push({
+        id: 'task_' + Date.now(),
+        title: title,
+        priority: priority,
+        targetWeek: week,
+        goalId: goalId,
         completed: false,
-        rolloverCount: 0,
-        scheduledDate: new Date().toISOString().split('T')[0]
-      };
+        rolledOver: false,
+        createdAt: new Date().toISOString()
+      });
 
-      appData.tasks.push(newTask);
       saveData();
-      renderAll();
       closeAddTaskModal();
-      document.getElementById('task-input-title').value = '';
+      renderAll();
+    }
+
+    function openAddGoalModal() {
+      document.getElementById('modal-goal').classList.remove('hidden');
+    }
+
+    function closeAddGoalModal() {
+      document.getElementById('modal-goal').classList.add('hidden');
+      document.getElementById('goal-input-title').value = '';
+      document.getElementById('goal-input-metric').value = '';
+      localStorage.removeItem('draft_goal_title');
+      localStorage.removeItem('draft_goal_metric');
     }
 
     function saveGoal() {
       const title = document.getElementById('goal-input-title').value.trim();
       const metric = document.getElementById('goal-input-metric').value.trim();
+      if (!title) return;
 
-      if (!title) return alert('Please enter a goal title');
-
-      appData.goals.push({ id: Date.now().toString(), title, metric });
-      saveData();
-      renderAll();
-      closeAddGoalModal();
-      document.getElementById('goal-input-title').value = '';
-      document.getElementById('goal-input-metric').value = '';
-    }
-
-    function renderGoals() {
-      const container = document.getElementById('goals-container');
-      container.innerHTML = '';
-
-      if (appData.goals.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-500">No 12-week goals defined yet.</p>`;
-        return;
-      }
-
-      appData.goals.forEach(goal => {
-        const tasksForGoal = appData.tasks.filter(t => t.goalId === goal.id);
-        const completedTasks = tasksForGoal.filter(t => t.completed).length;
-        const progress = tasksForGoal.length ? Math.round((completedTasks / tasksForGoal.length) * 100) : 0;
-
-        const card = document.createElement('div');
-        card.className = "bg-steel-900/60 p-4 rounded-xl border border-slate-800 space-y-2";
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="text-sm font-extrabold text-white">${goal.title}</h4>
-              <p class="text-xs text-slate-400">Target Metric: ${goal.metric || 'N/A'}</p>
-            </div>
-            <span class="text-xs font-bold text-gold-400 bg-gold-500/10 border border-gold-500/20 px-2 py-0.5 rounded">${progress}%</span>
-          </div>
-          <div class="w-full bg-steel-950 h-2 rounded-full overflow-hidden border border-slate-800">
-            <div class="bg-gradient-to-r from-crimson-600 to-gold-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
-          </div>
-          <p class="text-[11px] text-slate-500">${completedTasks} of ${tasksForGoal.length} tactical tasks accomplished</p>
-        `;
-        container.appendChild(card);
+      appData.goals.push({
+        id: 'goal_' + Date.now(),
+        title: title,
+        metric: metric || '100% Completion'
       });
+
+      saveData();
+      localStorage.removeItem('draft_goal_title');
+      localStorage.removeItem('draft_goal_metric');
+      closeAddGoalModal();
+      renderAll();
     }
 
-    /* Summaries Computation */
-    function updateSummariesAndBadges() {
-      const totalTasks = appData.tasks.length;
-      const completedTasks = appData.tasks.filter(t => t.completed).length;
-      const executionRate = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-      // Update Today Badges
-      document.getElementById('today-tasks-completed').innerText = completedTasks;
-      document.getElementById('today-tasks-total').innerText = `/ ${totalTasks} tasks`;
-      document.getElementById('today-progress-bar').style.width = `${executionRate}%`;
-      document.getElementById('today-execution-rate').innerText = `${executionRate}%`;
-
-      const rolledCount = appData.tasks.reduce((acc, t) => acc + (t.rolloverCount || 0), 0);
-      document.getElementById('today-rolled-count').innerText = rolledCount;
-
-      const highCount = appData.tasks.filter(t => t.priority === 'high' && !t.completed).length;
-      document.getElementById('today-high-count').innerText = highCount;
-
-      // Sidebar Updates
-      document.getElementById('sidebar-score').innerText = `${executionRate}%`;
-
-      // Summaries View Data
-      document.getElementById('sum-daily-completed').innerText = `${completedTasks} / ${totalTasks}`;
-      document.getElementById('sum-daily-score').innerText = `${executionRate}%`;
-      document.getElementById('sum-daily-rolled').innerText = rolledCount;
-
-      document.getElementById('sum-weekly-completed').innerText = completedTasks;
-      document.getElementById('sum-weekly-score').innerText = `${executionRate}%`;
-
-      document.getElementById('sum-monthly-completed').innerText = completedTasks;
-      document.getElementById('sum-monthly-high').innerText = highCount;
+    /* Sync & Export Operations */
+    function applySyncCode() {
+      const val = document.getElementById('syncCodeInput').value.trim();
+      if (val) {
+        appData.syncPairCode = val;
+        saveData();
+        alert('Sync code updated to: ' + val);
+      }
     }
 
-    /* Chart.js Setup */
+    function copySyncCode() {
+      const input = document.getElementById('syncCodeInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      alert('Sync code copied to clipboard!');
+    }
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `warrior_os_backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    /* Analytics Charts Initializer */
     function initCharts() {
-      const ctxWeekly = document.getElementById('weeklyTrendChart').getContext('2d');
-      weeklyChartInstance = new Chart(ctxWeekly, {
+      const weeklyCtx = document.getElementById('weeklyTrendChart').getContext('2d');
+      weeklyChartInstance = new Chart(weeklyCtx, {
         type: 'line',
         data: {
           labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
           datasets: [{
             label: 'Execution Score (%)',
-            data: [85, 88, 92, 86, 90, 0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#d32f2f',
-            backgroundColor: 'rgba(211, 47, 47, 0.15)',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
             fill: true,
             tension: 0.3
           }]
@@ -890,22 +922,22 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
           scales: {
-            y: { min: 0, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-          }
+            y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+          },
+          plugins: { legend: { display: false } }
         }
       });
 
-      const ctxPriority = document.getElementById('priorityBreakdownChart').getContext('2d');
-      priorityChartInstance = new Chart(ctxPriority, {
+      const priorityCtx = document.getElementById('priorityBreakdownChart').getContext('2d');
+      priorityChartInstance = new Chart(priorityCtx, {
         type: 'doughnut',
         data: {
-          labels: ['High Priority', 'Medium Priority', 'Low Priority'],
+          labels: ['High', 'Medium', 'Low'],
           datasets: [{
-            data: [3, 5, 2],
-            backgroundColor: ['#d32f2f', '#ffc107', '#2e7d32'],
+            data: [0, 0, 0],
+            backgroundColor: ['#d32f2f', '#ffc107', '#475569'],
             borderWidth: 0
           }]
         },
@@ -918,32 +950,43 @@
     }
 
     function updateCharts() {
-      if (!priorityChartInstance) return;
+      if (!weeklyChartInstance || !priorityChartInstance) return;
 
-      const high = appData.tasks.filter(t => t.priority === 'high' && t.completed).length;
-      const med = appData.tasks.filter(t => t.priority === 'medium' && t.completed).length;
-      const low = appData.tasks.filter(t => t.priority === 'low' && t.completed).length;
+      const totalTasks = appData.tasks.length;
+      const completedTasks = appData.tasks.filter(t => t.completed).length;
+      const rate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
-      priorityChartInstance.data.datasets[0].data = [high || 1, med || 1, low || 1];
+      weeklyChartInstance.data.datasets[0].data[0] = rate;
+      weeklyChartInstance.update();
+
+      const highCompleted = appData.tasks.filter(t => t.priority === 'high' && t.completed).length;
+      const medCompleted = appData.tasks.filter(t => t.priority === 'medium' && t.completed).length;
+      const lowCompleted = appData.tasks.filter(t => t.priority === 'low' && t.completed).length;
+
+      priorityChartInstance.data.datasets[0].data = [highCompleted, medCompleted, lowCompleted];
       priorityChartInstance.update();
     }
 
-    function copySyncCode() {
-      const input = document.getElementById('sync-pair-code');
-      input.select();
-      document.execCommand('copy');
-      alert('Warrior Sync Code copied to clipboard!');
-    }
+    /* SAFEGUARDS: Draft Auto-Save & Refresh Protection */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auto-save typed draft text in real time
+      document.getElementById('goal-input-title')?.addEventListener('input', (e) => {
+        localStorage.setItem('draft_goal_title', e.target.value);
+      });
 
-    function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "12_week_warrior_backup.json");
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
+      document.getElementById('goal-input-metric')?.addEventListener('input', (e) => {
+        localStorage.setItem('draft_goal_metric', e.target.value);
+      });
+    });
+
+    // Warn before accidental page refresh if text is currently being typed
+    window.addEventListener('beforeunload', (event) => {
+      const goalTitle = document.getElementById('goal-input-title')?.value;
+      if (goalTitle && goalTitle.trim() !== '') {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
   </script>
 </body>
 </html>
