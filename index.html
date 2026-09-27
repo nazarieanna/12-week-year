@@ -11,6 +11,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js for Summaries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB1fGqSN7hvXRqBy1kTMZw64GKNHUsf358",
+  authDomain: "week-3d0ae.firebaseapp.com",
+  databaseURL: "https://week-3d0ae-default-rtdb.firebaseio.com",
+  projectId: "week-3d0ae",
+  storageBucket: "week-3d0ae.firebasestorage.app",
+  messagingSenderId: "638994397540",
+  appId: "1:638994397540:web:cdb7a1e1e46d1e226f2271"
+};
+  <!-- Firebase SDKs (v9 Compat for easy web integration) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
     tailwind.config = {
@@ -18,29 +30,10 @@
       theme: {
         extend: {
           colors: {
-            crimson: {
-              500: '#d32f2f',
-              600: '#b71c1c',
-              700: '#9e1a1a',
-              900: '#4a0808',
-            },
-            gold: {
-              400: '#ffd54f',
-              500: '#ffc107',
-              600: '#ffb300',
-              700: '#f57f17',
-            },
-            jade: {
-              400: '#66bb6a',
-              500: '#2e7d32',
-              600: '#1b5e20',
-            },
-            steel: {
-              800: '#1c2026',
-              850: '#16191f',
-              900: '#121418',
-              950: '#0d0f12',
-            }
+            crimson: { 500: '#d32f2f', 600: '#b71c1c', 700: '#9e1a1a', 900: '#4a0808' },
+            gold: { 400: '#ffd54f', 500: '#ffc107', 600: '#ffb300', 700: '#f57f17' },
+            jade: { 400: '#66bb6a', 500: '#2e7d32', 600: '#1b5e20' },
+            steel: { 800: '#1c2026', 850: '#16191f', 900: '#121418', 950: '#0d0f12' }
           }
         }
       }
@@ -48,7 +41,6 @@
   </script>
 
   <style>
-    /* Custom scrollbar & glass design elements */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #121418; }
     ::-webkit-scrollbar-thumb { background: #2a303c; border-radius: 4px; }
@@ -65,7 +57,6 @@
   <!-- Navigation Sidebar (Desktop) -->
   <aside class="hidden md:flex flex-col w-64 bg-steel-900 border-r border-slate-800/80 p-4 justify-between z-20">
     <div>
-      <!-- App Brand Title -->
       <div class="flex items-center space-x-3 px-2 py-3 mb-6 border-b border-crimson-700/50">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-crimson-700 via-crimson-500 to-gold-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg crimson-glow">
           <i class="fa-solid fa-dragon text-white"></i>
@@ -76,7 +67,6 @@
         </div>
       </div>
 
-      <!-- Main Navigation Menu -->
       <nav class="space-y-2" id="desktop-nav">
         <button onclick="switchTab('today')" data-tab="today" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all text-gold-400 bg-crimson-900/40 border border-crimson-600/40 crimson-glow">
           <i class="fa-solid fa-shield-halved w-5 text-center text-crimson-500"></i>
@@ -96,12 +86,11 @@
         </button>
         <button onclick="switchTab('sync')" data-tab="sync" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
           <i class="fa-solid fa-rotate w-5 text-center text-jade-400"></i>
-          <span>Cloud Sync & Export</span>
+          <span>Cloud Sync & Status</span>
         </button>
       </nav>
     </div>
 
-    <!-- Cycle Status Widget Sidebar -->
     <div class="glass-card-crimson p-3 rounded-xl space-y-2 border border-crimson-700/40">
       <div class="flex justify-between items-center text-xs">
         <span class="text-slate-300 font-semibold">12-Week Cycle</span>
@@ -119,11 +108,12 @@
 
   <!-- Main Content Body -->
   <main class="flex-1 flex flex-col h-full overflow-y-auto relative pb-20 md:pb-6">
-    <!-- Top Header Bar -->
     <header class="bg-steel-900/90 backdrop-blur border-b border-slate-800/80 p-4 sticky top-0 z-10 flex justify-between items-center">
       <div class="flex items-center space-x-3">
         <h2 id="page-title" class="text-lg md:text-xl font-extrabold text-white tracking-wide">Today's Tactical Execution</h2>
-        <span id="current-date-badge" class="hidden sm:inline-block px-3 py-1 text-xs rounded-full bg-steel-800 text-gold-400 border border-gold-500/20 font-semibold"></span>
+        <span id="sync-status-badge" class="px-2.5 py-1 text-[11px] rounded-full bg-jade-600/20 text-jade-400 border border-jade-500/30 font-semibold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-jade-400 animate-pulse"></span> Realtime Sync Active
+        </span>
       </div>
       
       <div class="flex items-center space-x-2">
@@ -138,12 +128,10 @@
       </div>
     </header>
 
-    <!-- App View Container -->
     <div class="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-      <!-- View 1: Today's Execution Tasks -->
+      <!-- View 1: Today's Tasks -->
       <section id="view-today" class="space-y-6">
-        <!-- Quick Performance Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="glass-card p-4 rounded-xl border border-gold-500/10">
             <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Today's Progress</p>
@@ -171,7 +159,7 @@
               <span class="text-2xl font-black text-gold-500" id="today-rolled-count">0</span>
               <span class="text-xs text-slate-400">Medium Priority</span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-2">Shifted automatically from yesterday</p>
+            <p class="text-[11px] text-slate-500 mt-2">Shifted automatically</p>
           </div>
 
           <div class="glass-card p-4 rounded-xl border border-gold-500/10">
@@ -184,7 +172,6 @@
           </div>
         </div>
 
-        <!-- Task List Container -->
         <div class="glass-card rounded-xl border border-slate-800 overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-steel-850">
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
@@ -205,210 +192,96 @@
             </div>
           </div>
 
-          <div id="tasks-container" class="divide-y divide-slate-800/60 p-2">
-            <!-- Dynamic task rows injected here -->
-          </div>
+          <div id="tasks-container" class="divide-y divide-slate-800/60 p-2"></div>
         </div>
       </section>
 
-      <!-- View 2: Summaries & Analytics Dashboard -->
+      <!-- View 2: Summaries Dashboard -->
       <section id="view-summaries" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Daily Summary Card -->
           <div class="glass-card p-5 rounded-xl border border-crimson-600/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-day text-crimson-500"></i> Daily Task Summary
-              </h4>
-              <span class="text-xs bg-steel-900 text-gold-400 px-2 py-0.5 rounded font-mono border border-gold-500/20" id="sum-daily-date">Today</span>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-crimson-500"></i> Daily Task Summary</h4>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Completed Tasks Today:</span>
-              <span class="text-base font-extrabold text-white" id="sum-daily-completed">0 / 0</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Execution Score Today:</span>
-              <span class="text-base font-extrabold text-gold-400 gold-glow" id="sum-daily-score">0%</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Rolled Medium Tasks:</span>
-              <span class="text-xs font-bold text-gold-500" id="sum-daily-rolled">0</span>
-            </div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Completed Tasks:</span><span class="text-base font-extrabold text-white" id="sum-daily-completed">0 / 0</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Execution Score:</span><span class="text-base font-extrabold text-gold-400 gold-glow" id="sum-daily-score">0%</span></div>
           </div>
 
-          <!-- Weekly Summary Card -->
           <div class="glass-card p-5 rounded-xl border border-gold-500/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-week text-gold-500"></i> Weekly Summary
-              </h4>
-              <span class="text-xs bg-steel-900 text-gold-400 px-2 py-0.5 rounded font-mono border border-gold-500/20" id="sum-weekly-label">Week 1</span>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-gold-500"></i> Weekly Summary</h4>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Tasks Completed This Week:</span>
-              <span class="text-base font-extrabold text-white" id="sum-weekly-completed">0</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Weekly Execution Score:</span>
-              <span class="text-base font-extrabold text-jade-400" id="sum-weekly-score">0%</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">12-Week Target Threshold:</span>
-              <span class="text-xs font-bold text-slate-300">85%+ High Perform</span>
-            </div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Tasks Completed:</span><span class="text-base font-extrabold text-white" id="sum-weekly-completed">0</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Weekly Score:</span><span class="text-base font-extrabold text-jade-400" id="sum-weekly-score">0%</span></div>
           </div>
 
-          <!-- Monthly Summary Card -->
           <div class="glass-card p-5 rounded-xl border border-jade-500/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days text-jade-400"></i> Monthly / Cycle Summary
-              </h4>
-              <span class="text-xs bg-steel-900 text-jade-400 px-2 py-0.5 rounded font-mono border border-jade-500/20" id="sum-monthly-label">30-Day Rolling</span>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-jade-400"></i> 12-Week Cycle</h4>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Total Completed Tactics:</span>
-              <span class="text-base font-extrabold text-white" id="sum-monthly-completed">0</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Active High-Priority Items:</span>
-              <span class="text-base font-extrabold text-crimson-500" id="sum-monthly-high">0</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Warrior Discipline Index:</span>
-              <span class="text-xs font-bold text-gold-400">Unstoppable</span>
-            </div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Total Completed Tactics:</span><span class="text-base font-extrabold text-white" id="sum-monthly-completed">0</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Active High Priority:</span><span class="text-base font-extrabold text-crimson-500" id="sum-monthly-high">0</span></div>
           </div>
         </div>
 
-        <!-- Charts Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="glass-card p-4 rounded-xl border border-slate-800">
-            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
-              <i class="fa-solid fa-chart-area text-crimson-500"></i> Weekly Execution Score Trend (%)
-            </h4>
-            <div class="h-64 relative">
-              <canvas id="weeklyTrendChart"></canvas>
-            </div>
+            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-chart-area text-crimson-500"></i> Execution Score Trend (%)</h4>
+            <div class="h-64 relative"><canvas id="weeklyTrendChart"></canvas></div>
           </div>
 
           <div class="glass-card p-4 rounded-xl border border-slate-800">
-            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
-              <i class="fa-solid fa-chart-pie text-gold-500"></i> Completed Task Priority Distribution
-            </h4>
-            <div class="h-64 relative">
-              <canvas id="priorityBreakdownChart"></canvas>
-            </div>
+            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-chart-pie text-gold-500"></i> Priority Distribution</h4>
+            <div class="h-64 relative"><canvas id="priorityBreakdownChart"></canvas></div>
           </div>
         </div>
       </section>
 
-      <!-- View 3: 12-Week Goals Mapping -->
+      <!-- View 3: Goals -->
       <section id="view-goals" class="space-y-6 hidden">
         <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-lg font-extrabold text-white">12-Week Tactical Goals</h3>
-              <p class="text-xs text-slate-400">Translate vision into tactical goals and weekly tactics</p>
+              <p class="text-xs text-slate-400">Translate vision into tactical goals</p>
             </div>
             <button onclick="openAddGoalModal()" class="px-3.5 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs flex items-center space-x-1.5 crimson-glow transition-all">
-              <i class="fa-solid fa-plus"></i>
-              <span>Add Goal</span>
+              <i class="fa-solid fa-plus"></i><span>Add Goal</span>
             </button>
           </div>
-
-          <div id="goals-container" class="space-y-4">
-            <!-- Dynamic goals injected here -->
-          </div>
+          <div id="goals-container" class="space-y-4"></div>
         </div>
       </section>
 
-      <!-- View 4: Time Blocking System -->
+      <!-- View 4: Time Blocks -->
       <section id="view-timeblocks" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="glass-card p-5 rounded-xl border-l-4 border-l-crimson-500 border-y border-r border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="font-extrabold text-crimson-400 flex items-center gap-2">
-                <i class="fa-solid fa-fire"></i> Strategic Blocks
-              </h4>
-              <span class="text-xs bg-crimson-900/50 text-crimson-300 px-2 py-0.5 rounded border border-crimson-500/30 font-semibold">3 Hours / Block</span>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Uninterrupted deep work blocks strictly dedicated to strategic tactics that directly drive your 12-week goals. Zero distractions.
-            </p>
-            <div class="pt-2">
-              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
-              <p class="text-xs font-extrabold text-gold-400">At least 1-2 blocks per week</p>
-            </div>
+            <h4 class="font-extrabold text-crimson-400 flex items-center gap-2"><i class="fa-solid fa-fire"></i> Strategic Blocks</h4>
+            <p class="text-xs text-slate-300">Uninterrupted deep work blocks strictly dedicated to strategic tactics.</p>
           </div>
-
           <div class="glass-card p-5 rounded-xl border-l-4 border-l-gold-500 border-y border-r border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="font-extrabold text-gold-400 flex items-center gap-2">
-                <i class="fa-solid fa-shield"></i> Buffer Blocks
-              </h4>
-              <span class="text-xs bg-gold-500/10 text-gold-400 px-2 py-0.5 rounded border border-gold-500/30 font-semibold">30-60 Mins</span>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Scheduled time to handle administrative tasks, quick communications, emails, and unexpected daily interruptions.
-            </p>
-            <div class="pt-2">
-              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
-              <p class="text-xs font-extrabold text-white">1-2 blocks daily</p>
-            </div>
+            <h4 class="font-extrabold text-gold-400 flex items-center gap-2"><i class="fa-solid fa-shield"></i> Buffer Blocks</h4>
+            <p class="text-xs text-slate-300">Scheduled time to handle admin tasks and daily communications.</p>
           </div>
-
           <div class="glass-card p-5 rounded-xl border-l-4 border-l-jade-500 border-y border-r border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="font-extrabold text-jade-400 flex items-center gap-2">
-                <i class="fa-solid fa-feather-pointed"></i> Breakout Blocks
-              </h4>
-              <span class="text-xs bg-jade-600/20 text-jade-400 px-2 py-0.5 rounded border border-jade-500/30 font-semibold">3 Hours</span>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Dedicated time spent away from work during normal work hours to recharge mental clarity, stimulate creative thinking, and prevent burnout.
-            </p>
-            <div class="pt-2">
-              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
-              <p class="text-xs font-extrabold text-white">1 block per week</p>
-            </div>
+            <h4 class="font-extrabold text-jade-400 flex items-center gap-2"><i class="fa-solid fa-feather-pointed"></i> Breakout Blocks</h4>
+            <p class="text-xs text-slate-300">Dedicated time away from work to recharge mental clarity.</p>
           </div>
         </div>
       </section>
 
-      <!-- View 5: Sync & Cloud Settings -->
+      <!-- View 5: Sync Status -->
       <section id="view-sync" class="space-y-6 hidden">
-        <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-6 max-w-3xl">
-          <div>
-            <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
-              <i class="fa-solid fa-rotate text-gold-500"></i> Device Sync & Backups
-            </h3>
-            <p class="text-xs text-slate-400 mt-1">
-              Sync your tactics across mobile and desktop devices using your custom synchronization code.
-            </p>
-          </div>
-
-          <div class="space-y-4">
-            <div class="bg-steel-900 p-4 rounded-xl border border-slate-800 space-y-3">
-              <label class="text-xs font-bold text-slate-300 block">Unique Device Sync Code</label>
-              <div class="flex items-center space-x-2">
-                <input type="text" id="syncCodeInput" class="bg-steel-950 border border-slate-800 text-gold-400 text-sm font-mono font-bold rounded-lg p-2.5 flex-1 focus:outline-none focus:border-gold-500" placeholder="Enter Sync Code" />
-                <button onclick="applySyncCode()" class="px-4 py-2.5 bg-crimson-600 hover:bg-crimson-500 text-white text-xs font-bold rounded-lg crimson-glow transition-all">Apply Code</button>
-                <button onclick="copySyncCode()" class="px-4 py-2.5 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
-                  <i class="fa-regular fa-copy"></i> Copy
-                </button>
-              </div>
-            </div>
-
-            <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
-              <div>
-                <p class="text-xs font-bold text-slate-300">Export Backup Data</p>
-                <p class="text-[11px] text-slate-500">Download all your tasks, goals, and history as JSON</p>
-              </div>
-              <button onclick="exportDataJSON()" class="px-3.5 py-2 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
-                Export Data
-              </button>
-            </div>
+        <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4 max-w-2xl">
+          <h3 class="text-lg font-extrabold text-white flex items-center gap-2"><i class="fa-solid fa-cloud-check text-jade-400"></i> Realtime Database Status</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Your application is now connected directly to Firebase Realtime Database. Any addition, deletion, or task update on your phone or laptop will instantly update across all connected devices in real time without refreshing.
+          </p>
+          <div class="pt-2">
+            <button onclick="exportDataJSON()" class="px-4 py-2 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
+              Export Manual Data Backup
+            </button>
           </div>
         </div>
       </section>
@@ -416,44 +289,27 @@
     </div>
   </main>
 
-  <!-- Mobile Bottom Navigation Bar -->
+  <!-- Mobile Navigation -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-steel-900/95 backdrop-blur border-t border-slate-800 flex justify-around p-2 z-30">
-    <button onclick="switchTab('today')" data-tab="today" class="nav-btn flex flex-col items-center p-2 text-gold-400">
-      <i class="fa-solid fa-shield-halved text-base"></i>
-      <span class="text-[10px] mt-1 font-semibold">Today</span>
-    </button>
-    <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn flex flex-col items-center p-2 text-slate-400">
-      <i class="fa-solid fa-chart-line text-base"></i>
-      <span class="text-[10px] mt-1 font-semibold">Summary</span>
-    </button>
-    <button onclick="switchTab('goals')" data-tab="goals" class="nav-btn flex flex-col items-center p-2 text-slate-400">
-      <i class="fa-solid fa-bullseye text-base"></i>
-      <span class="text-[10px] mt-1 font-semibold">Goals</span>
-    </button>
-    <button onclick="switchTab('timeblocks')" data-tab="timeblocks" class="nav-btn flex flex-col items-center p-2 text-slate-400">
-      <i class="fa-solid fa-hourglass-half text-base"></i>
-      <span class="text-[10px] mt-1 font-semibold">Blocks</span>
-    </button>
-    <button onclick="switchTab('sync')" data-tab="sync" class="nav-btn flex flex-col items-center p-2 text-slate-400">
-      <i class="fa-solid fa-rotate text-base"></i>
-      <span class="text-[10px] mt-1 font-semibold">Sync</span>
-    </button>
+    <button onclick="switchTab('today')" data-tab="today" class="nav-btn flex flex-col items-center p-2 text-gold-400"><i class="fa-solid fa-shield-halved text-base"></i><span class="text-[10px] mt-1 font-semibold">Today</span></button>
+    <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-chart-line text-base"></i><span class="text-[10px] mt-1 font-semibold">Summary</span></button>
+    <button onclick="switchTab('goals')" data-tab="goals" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-bullseye text-base"></i><span class="text-[10px] mt-1 font-semibold">Goals</span></button>
+    <button onclick="switchTab('timeblocks')" data-tab="timeblocks" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-hourglass-half text-base"></i><span class="text-[10px] mt-1 font-semibold">Blocks</span></button>
+    <button onclick="switchTab('sync')" data-tab="sync" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-rotate text-base"></i><span class="text-[10px] mt-1 font-semibold">Sync</span></button>
   </nav>
 
-  <!-- New Task Modal -->
+  <!-- Modals -->
   <div id="modal-task" class="fixed inset-0 bg-steel-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-card bg-steel-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="text-base font-extrabold text-white">New Tactical Task</h3>
         <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="space-y-3">
         <div>
           <label class="text-xs font-semibold text-slate-300 block mb-1">Task Description</label>
-          <input type="text" id="task-input-title" placeholder="e.g. Conduct 10 client outreach calls" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+          <input type="text" id="task-input-title" placeholder="e.g. Conduct client outreach calls" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
         </div>
-
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">Priority Level</label>
@@ -463,23 +319,16 @@
               <option value="low">Low (Flexible)</option>
             </select>
           </div>
-
           <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">Target Week</label>
-            <select id="task-input-week" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500">
-              <!-- Dynamically populated -->
-            </select>
+            <select id="task-input-week" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500"></select>
           </div>
         </div>
-
         <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Associated Goal (Optional)</label>
-          <select id="task-input-goal" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500">
-            <option value="">General Execution</option>
-          </select>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Associated Goal</label>
+          <select id="task-input-goal" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500"><option value="">General Execution</option></select>
         </div>
       </div>
-
       <div class="flex justify-end space-x-2 pt-2">
         <button onclick="closeAddTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-steel-800">Cancel</button>
         <button onclick="saveTask()" class="px-5 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs shadow-lg crimson-glow">Save Tactic</button>
@@ -487,25 +336,22 @@
     </div>
   </div>
 
-  <!-- New Goal Modal -->
   <div id="modal-goal" class="fixed inset-0 bg-steel-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-card bg-steel-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="text-base font-extrabold text-white">Add 12-Week Goal</h3>
         <button onclick="closeAddGoalModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="space-y-3">
         <div>
           <label class="text-xs font-semibold text-slate-300 block mb-1">12-Week Goal Title</label>
-          <input type="text" id="goal-input-title" placeholder="e.g. Master Martial Discipline Routine" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+          <input type="text" id="goal-input-title" placeholder="e.g. Scale Business Operations" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
         </div>
         <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Target Key Metric / Outcome</label>
-          <input type="text" id="goal-input-metric" placeholder="e.g. 100% On-Time Weekly Execution" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Target Key Metric</label>
+          <input type="text" id="goal-input-metric" placeholder="e.g. 100% Execution" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
         </div>
       </div>
-
       <div class="flex justify-end space-x-2 pt-2">
         <button onclick="closeAddGoalModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-steel-800">Cancel</button>
         <button onclick="saveGoal()" class="px-5 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs shadow-lg crimson-glow">Save Goal</button>
@@ -514,485 +360,46 @@
   </div>
 
   <script>
-    /* Global Application State */
-    const APP_STATE_KEY = '12wy_warrior_execution_os_data';
-    
-    let appData = {
-      cycleStartDate: new Date().toISOString(),
-      tasks: [],
-      goals: [],
-      lastProcessedDate: new Date().toISOString().split('T')[0],
-      syncPairCode: generatePairCode()
-    };
+    /* ========================================================= */
+    /* FIREBASE CONFIGURATION - REPLACE WITH YOUR KEYS FROM STEP 1 */
+    /* ========================================================= */
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket:Setting up a Firebase Realtime Database is the best way to get instant live sync between your phone and laptop without refreshing. Follow these step-by-step instructions:
 
-    let weeklyChartInstance = null;
-    let priorityChartInstance = null;
+---
 
-    /* Initialize App */
-    window.onload = function() {
-      loadData();
-      checkDailyRollover();
-      setupWeekDropdowns();
-      renderAll();
-      initCharts();
-      updateDateBadges();
-      document.getElementById('syncCodeInput').value = appData.syncPairCode;
-      
-      // Restore draft inputs on page load if present
-      const savedTitle = localStorage.getItem('draft_goal_title');
-      const savedMetric = localStorage.getItem('draft_goal_metric');
-      if (savedTitle && document.getElementById('goal-input-title')) {
-        document.getElementById('goal-input-title').value = savedTitle;
-      }
-      if (savedMetric && document.getElementById('goal-input-metric')) {
-        document.getElementById('goal-input-metric').value = savedMetric;
-      }
-    };
+### Step 1: Create a Free Firebase Database
 
-    function generatePairCode() {
-      return 'WARRIOR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
+1. Go to the [Firebase Console](https://console.firebase.google.com/) and sign in with your Google account.
+2. Click **Add project** (or **Create a project**), name it `Warrior-OS`, and click **Continue**. (You can turn off Google Analytics for this project).
+3. Once created, click **Continue** to enter your project dashboard.
+4. In the left sidebar, expand **Build** and select **Realtime Database**.
+5. Click **Create Database**, select your location (default is fine), and click **Next**.
+6. Select **Start in test mode** (this allows read/write access during development) and click **Enable**.
 
-    function updateDateBadges() {
-      const today = new Date();
-      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-      document.getElementById('current-date-badge').innerText = today.toLocaleDateString('en-US', options);
-      document.getElementById('sum-daily-date').innerText = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
+---
 
-    function setupWeekDropdowns() {
-      const weekSelect = document.getElementById('task-input-week');
-      weekSelect.innerHTML = '';
-      for (let i = 1; i <= 12; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = `Week ${i}`;
-        weekSelect.appendChild(opt);
-      }
-    }
+### Step 2: Get Your Firebase Configuration Snippet
 
-    /* Tab Switching Logic */
-    function switchTab(tabId) {
-      document.querySelectorAll('main > div > section').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+1. On your Firebase project overview page, click the **Web icon** (`</>`) to register a web app.
+2. Enter an app nickname (e.g., `Warrior OS Web`) and click **Register app**.
+3. You will see a code block containing your `firebaseConfig` details. Keep this tab open—you will copy values like `apiKey`, `authDomain`, and `databaseURL` into your code.
 
-      // Update Desktop Nav styles
-      document.querySelectorAll('#desktop-nav .nav-btn').forEach(btn => {
-        if (btn.dataset.tab === tabId) {
-          btn.className = 'nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all text-gold-400 bg-crimson-900/40 border border-crimson-600/40 crimson-glow';
-        } else {
-          btn.className = 'nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all';
-        }
-      });
+---
 
-      // Update Mobile Nav styles
-      document.querySelectorAll('nav.md\\:hidden .nav-btn').forEach(btn => {
-        if (btn.dataset.tab === tabId) {
-          btn.className = 'nav-btn flex flex-col items-center p-2 text-gold-400';
-        } else {
-          btn.className = 'nav-btn flex flex-col items-center p-2 text-slate-400';
-        }
-      });
+### Step 3: Add Firebase to `index.html` on GitHub
 
-      // Update Page Title
-      const titles = {
-        today: "Today's Tactical Execution",
-        summaries: "Execution Summaries & Analytics",
-        goals: "12-Week Goals & Roadmap",
-        timeblocks: "Tactical Time Blocks",
-        sync: "Device Sync & Backups"
-      };
-      document.getElementById('page-title').innerText = titles[tabId] || 'Warrior OS';
+Open your `index.html` file on GitHub, click the pencil icon to edit, and add the Firebase scripts and sync logic.
 
-      if (tabId === 'summaries') {
-        updateCharts();
-      }
-    }
+#### A. Add the SDKs inside the `<head>` section
+Paste these script tags right above your closing `</head>` tag:
 
-    /* Data Storage Operations */
-    function loadData() {
-      const saved = localStorage.getItem(APP_STATE_KEY);
-      if (saved) {
-        try {
-          appData = JSON.parse(saved);
-          if (!appData.syncPairCode) appData.syncPairCode = generatePairCode();
-        } catch (e) {
-          console.error("Error parsing stored data", e);
-        }
-      } else {
-        saveData();
-      }
-    }
-
-    function saveData() {
-      localStorage.setItem(APP_STATE_KEY, JSON.stringify(appData));
-    }
-
-    /* Daily Rollover Logic */
-    function checkDailyRollover() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (appData.lastProcessedDate !== todayStr) {
-        processDailyRollover();
-        appData.lastProcessedDate = todayStr;
-        saveData();
-      }
-    }
-
-    function processDailyRolloverManually() {
-      processDailyRollover();
-      appData.lastProcessedDate = new Date().toISOString().split('T')[0];
-      saveData();
-      renderAll();
-    }
-
-    function processDailyRollover() {
-      appData.tasks.forEach(task => {
-        if (!task.completed) {
-          if (task.priority === 'medium') {
-            task.rolledOver = true;
-            task.rolledCount = (task.rolledCount || 0) + 1;
-          }
-        }
-      });
-    }
-
-    /* Render Logic */
-    function renderAll() {
-      renderTasks();
-      renderGoals();
-      renderGoalDropdown();
-      updateSummaries();
-    }
-
-    function renderTasks() {
-      const container = document.getElementById('tasks-container');
-      container.innerHTML = '';
-
-      const priorityFilter = document.getElementById('filter-priority').value;
-      const statusFilter = document.getElementById('filter-status').value;
-
-      let filtered = appData.tasks.filter(t => {
-        if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
-        if (statusFilter === 'pending' && t.completed) return false;
-        if (statusFilter === 'completed' && !t.completed) return false;
-        return true;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No tactical tasks match the selected filters.</div>`;
-        return;
-      }
-
-      filtered.forEach(task => {
-        const div = document.createElement('div');
-        div.className = 'p-3 flex items-center justify-between hover:bg-steel-800/40 rounded-lg transition-all group';
-        
-        const priorityColors = {
-          high: 'text-crimson-500 bg-crimson-900/30 border-crimson-600/40',
-          medium: 'text-gold-400 bg-gold-500/10 border-gold-500/30',
-          low: 'text-slate-400 bg-steel-800 border-slate-700'
-        };
-
-        const badgeText = task.priority.toUpperCase();
-
-        div.innerHTML = `
-          <div class="flex items-center space-x-3 flex-1 min-w-0 pr-2">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="w-4 h-4 rounded border-slate-700 text-crimson-600 focus:ring-crimson-500 bg-steel-950 cursor-pointer">
-            <span class="text-sm font-medium ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</span>
-            ${task.rolledOver ? `<span class="badge-rollover text-[10px] font-bold px-2 py-0.5 rounded bg-gold-500/20 text-gold-400 border border-gold-500/30"><i class="fa-solid fa-arrows-rotate mr-1"></i>Rolled</span>` : ''}
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${priorityColors[task.priority]}">${badgeText}</span>
-            <button onclick="deleteTask('${task.id}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-crimson-500 p-1 transition-all"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function toggleTask(id) {
-      const task = appData.tasks.find(t => t.id === id);
-      if (task) {
-        task.completed = !task.completed;
-        saveData();
-        renderAll();
-      }
-    }
-
-    function deleteTask(id) {
-      appData.tasks = appData.tasks.filter(t => t.id !== id);
-      saveData();
-      renderAll();
-    }
-
-    function renderGoals() {
-      const container = document.getElementById('goals-container');
-      container.innerHTML = '';
-
-      if (appData.goals.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No 12-Week Goals defined yet. Click "Add Goal" above to create one.</div>`;
-        return;
-      }
-
-      appData.goals.forEach(goal => {
-        const goalTasks = appData.tasks.filter(t => t.goalId === goal.id);
-        const completedCount = goalTasks.filter(t => t.completed).length;
-        const totalCount = goalTasks.length;
-        const progressPct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
-
-        const div = document.createElement('div');
-        div.className = 'bg-steel-900 border border-slate-800 rounded-xl p-4 space-y-3';
-        div.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="font-extrabold text-slate-100 text-sm">${goal.title}</h4>
-              <p class="text-xs text-slate-400 mt-0.5">Metric: ${goal.metric}</p>
-            </div>
-            <button onclick="deleteGoal('${goal.id}')" class="text-slate-500 hover:text-crimson-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs text-slate-400">
-              <span>Goal Tactics Progress</span>
-              <span class="font-bold text-gold-400">${progressPct}% (${completedCount}/${totalCount})</span>
-            </div>
-            <div class="w-full bg-steel-950 h-2 rounded-full overflow-hidden border border-slate-800">
-              <div class="bg-gradient-to-r from-crimson-500 to-gold-500 h-full transition-all duration-300" style="width: ${progressPct}%"></div>
-            </div>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function deleteGoal(id) {
-      appData.goals = appData.goals.filter(g => g.id !== id);
-      saveData();
-      renderAll();
-    }
-
-    function renderGoalDropdown() {
-      const select = document.getElementById('task-input-goal');
-      select.innerHTML = `<option value="">General Execution</option>`;
-      appData.goals.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.innerText = g.title;
-        select.appendChild(opt);
-      });
-    }
-
-    function updateSummaries() {
-      const totalTasks = appData.tasks.length;
-      const completedTasks = appData.tasks.filter(t => t.completed).length;
-      const rate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-
-      const highPriorityCount = appData.tasks.filter(t => t.priority === 'high' && !t.completed).length;
-      const rolledCount = appData.tasks.filter(t => t.rolledOver && !t.completed).length;
-
-      // Update Dashboard Cards
-      document.getElementById('today-tasks-completed').innerText = completedTasks;
-      document.getElementById('today-tasks-total').innerText = `/ ${totalTasks} tasks`;
-      document.getElementById('today-progress-bar').style.width = `${rate}%`;
-      document.getElementById('today-execution-rate').innerText = `${rate}%`;
-      document.getElementById('today-rolled-count').innerText = rolledCount;
-      document.getElementById('today-high-count').innerText = highPriorityCount;
-
-      // Update Sidebar Progress Widget
-      document.getElementById('sidebar-score').innerText = `${rate}%`;
-
-      // Update Summaries Tab Cards
-      document.getElementById('sum-daily-completed').innerText = `${completedTasks} / ${totalTasks}`;
-      document.getElementById('sum-daily-score').innerText = `${rate}%`;
-      document.getElementById('sum-daily-rolled').innerText = rolledCount;
-
-      document.getElementById('sum-weekly-completed').innerText = completedTasks;
-      document.getElementById('sum-weekly-score').innerText = `${rate}%`;
-
-      document.getElementById('sum-monthly-completed').innerText = completedTasks;
-      document.getElementById('sum-monthly-high').innerText = highPriorityCount;
-    }
-
-    /* Modal Operations */
-    function openAddTaskModal() {
-      document.getElementById('modal-task').classList.remove('hidden');
-    }
-
-    function closeAddTaskModal() {
-      document.getElementById('modal-task').classList.add('hidden');
-      document.getElementById('task-input-title').value = '';
-    }
-
-    function saveTask() {
-      const title = document.getElementById('task-input-title').value.trim();
-      if (!title) return;
-
-      const priority = document.getElementById('task-input-priority').value;
-      const week = parseInt(document.getElementById('task-input-week').value);
-      const goalId = document.getElementById('task-input-goal').value;
-
-      appData.tasks.push({
-        id: 'task_' + Date.now(),
-        title: title,
-        priority: priority,
-        targetWeek: week,
-        goalId: goalId,
-        completed: false,
-        rolledOver: false,
-        createdAt: new Date().toISOString()
-      });
-
-      saveData();
-      closeAddTaskModal();
-      renderAll();
-    }
-
-    function openAddGoalModal() {
-      document.getElementById('modal-goal').classList.remove('hidden');
-    }
-
-    function closeAddGoalModal() {
-      document.getElementById('modal-goal').classList.add('hidden');
-      document.getElementById('goal-input-title').value = '';
-      document.getElementById('goal-input-metric').value = '';
-      localStorage.removeItem('draft_goal_title');
-      localStorage.removeItem('draft_goal_metric');
-    }
-
-    function saveGoal() {
-      const title = document.getElementById('goal-input-title').value.trim();
-      const metric = document.getElementById('goal-input-metric').value.trim();
-      if (!title) return;
-
-      appData.goals.push({
-        id: 'goal_' + Date.now(),
-        title: title,
-        metric: metric || '100% Completion'
-      });
-
-      saveData();
-      localStorage.removeItem('draft_goal_title');
-      localStorage.removeItem('draft_goal_metric');
-      closeAddGoalModal();
-      renderAll();
-    }
-
-    /* Sync & Export Operations */
-    function applySyncCode() {
-  const input = document.getElementById('syncCodeInput');
-  if (!input) return;
-  
-  const val = input.value.trim().toUpperCase();
-  if (!val) {
-    alert('Please enter a valid sync code.');
-    return;
-  }
-
-  appData.syncPairCode = val;
-  saveData();
-  alert('Sync code updated successfully: ' + val);
-}
-
-    function copySyncCode() {
-      const input = document.getElementById('syncCodeInput');
-      input.select();
-      navigator.clipboard.writeText(input.value);
-      alert('Sync code copied to clipboard!');
-    }
-
-    function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `warrior_os_backup_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    /* Analytics Charts Initializer */
-    function initCharts() {
-      const weeklyCtx = document.getElementById('weeklyTrendChart').getContext('2d');
-      weeklyChartInstance = new Chart(weeklyCtx, {
-        type: 'line',
-        data: {
-          labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
-          datasets: [{
-            label: 'Execution Score (%)',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#ffc107',
-            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-          },
-          plugins: { legend: { display: false } }
-        }
-      });
-
-      const priorityCtx = document.getElementById('priorityBreakdownChart').getContext('2d');
-      priorityChartInstance = new Chart(priorityCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['High', 'Medium', 'Low'],
-          datasets: [{
-            data: [0, 0, 0],
-            backgroundColor: ['#d32f2f', '#ffc107', '#475569'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8' } } }
-        }
-      });
-    }
-
-    function updateCharts() {
-      if (!weeklyChartInstance || !priorityChartInstance) return;
-
-      const totalTasks = appData.tasks.length;
-      const completedTasks = appData.tasks.filter(t => t.completed).length;
-      const rate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-
-      weeklyChartInstance.data.datasets[0].data[0] = rate;
-      weeklyChartInstance.update();
-
-      const highCompleted = appData.tasks.filter(t => t.priority === 'high' && t.completed).length;
-      const medCompleted = appData.tasks.filter(t => t.priority === 'medium' && t.completed).length;
-      const lowCompleted = appData.tasks.filter(t => t.priority === 'low' && t.completed).length;
-
-      priorityChartInstance.data.datasets[0].data = [highCompleted, medCompleted, lowCompleted];
-      priorityChartInstance.update();
-    }
-
-    /* SAFEGUARDS: Draft Auto-Save & Refresh Protection */
-    document.addEventListener('DOMContentLoaded', () => {
-      // Auto-save typed draft text in real time
-      document.getElementById('goal-input-title')?.addEventListener('input', (e) => {
-        localStorage.setItem('draft_goal_title', e.target.value);
-      });
-
-      document.getElementById('goal-input-metric')?.addEventListener('input', (e) => {
-        localStorage.setItem('draft_goal_metric', e.target.value);
-      });
-    });
-
-    // Warn before accidental page refresh if text is currently being typed
-    window.addEventListener('beforeunload', (event) => {
-      const goalTitle = document.getElementById('goal-input-title')?.value;
-      if (goalTitle && goalTitle.trim() !== '') {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    });
-  </script>
-</body>
-</html>
+```html
+  <!-- Firebase App & Realtime Database SDKs -->
+  <script src="[https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js)"></script>
+  <script src="[https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js)"></script>
+</head>
