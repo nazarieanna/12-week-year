@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0d0f12] text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>12 Week Year Warrior Execution OS</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for Summaries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            crimson: {
+              500: '#d32f2f',
+              600: '#b71c1c',
+              700: '#9e1a1a',
+              900: '#4a0808',
+            },
+            gold: {
+              400: '#ffd54f',
+              500: '#ffc107',
+              600: '#ffb300',
+              700: '#f57f17',
+            },
+            jade: {
+              400: '#66bb6a',
+              500: '#2e7d32',
+              600: '#1b5e20',
+            },
+            steel: {
+              800: '#1c2026',
+              850: '#16191f',
+              900: '#121418',
+              950: '#0d0f12',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar & glass design elements */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #121418; }
+    ::-webkit-scrollbar-thumb { background: #2a303c; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9e1a1a; }
+    .glass-card { background: rgba(28, 32, 38, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.12); }
+    .glass-card-crimson { background: rgba(74, 8, 8, 0.35); backdrop-filter: blur(12px); border: 1px solid rgba(211, 47, 47, 0.3); }
+    .badge-rollover { animation: pulse 2s infinite; }
+    .gold-glow { text-shadow: 0 0 10px rgba(255, 193, 7, 0.4); }
+    .crimson-glow { box-shadow: 0 0 15px rgba(211, 47, 47, 0.35); }
+  </style>
+</head>
+<body class="h-full font-sans antialiased bg-[#0d0f12] text-slate-100 flex flex-col md:flex-row overflow-hidden">
+
+  <!-- Navigation Sidebar (Desktop) -->
+  <aside class="hidden md:flex flex-col w-64 bg-steel-900 border-r border-slate-800/80 p-4 justify-between z-20">
+    <div>
+      <!-- App Brand Title -->
+      <div class="flex items-center space-x-3 px-2 py-3 mb-6 border-b border-crimson-700/50">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-crimson-700 via-crimson-500 to-gold-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg crimson-glow">
+          <i class="fa-solid fa-dragon text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base leading-tight tracking-wider text-white">WARRIOR OS</h1>
+          <p class="text-[10px] text-gold-400 font-bold tracking-widest uppercase">12 Week Execution</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="space-y-2" id="desktop-nav">
+        <button onclick="switchTab('today')" data-tab="today" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all text-gold-400 bg-crimson-900/40 border border-crimson-600/40 crimson-glow">
+          <i class="fa-solid fa-shield-halved w-5 text-center text-crimson-500"></i>
+          <span>Today's Battles</span>
+        </button>
+        <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
+          <i class="fa-solid fa-chart-line w-5 text-center text-gold-500"></i>
+          <span>Execution Summaries</span>
+        </button>
+        <button onclick="switchTab('goals')" data-tab="goals" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
+          <i class="fa-solid fa-bullseye w-5 text-center text-crimson-500"></i>
+          <span>12-Week Goals</span>
+        </button>
+        <button onclick="switchTab('timeblocks')" data-tab="timeblocks" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
+          <i class="fa-solid fa-hourglass-half w-5 text-center text-gold-500"></i>
+          <span>Tactical Time Blocks</span>
+        </button>
+        <button onclick="switchTab('sync')" data-tab="sync" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
+          <i class="fa-solid fa-rotate w-5 text-center text-jade-400"></i>
+          <span>Cloud Sync & Export</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Cycle Status Widget Sidebar -->
+    <div class="glass-card-crimson p-3 rounded-xl space-y-2 border border-crimson-700/40">
+      <div class="flex justify-between items-center text-xs">
+        <span class="text-slate-300 font-semibold">12-Week Cycle</span>
+        <span class="text-gold-400 font-extrabold" id="sidebar-week-label">Week 1 / 12</span>
+      </div>
+      <div class="w-full bg-steel-950 rounded-full h-2 overflow-hidden border border-slate-800">
+        <div id="sidebar-progress-bar" class="bg-gradient-to-r from-crimson-600 to-gold-500 h-full rounded-full transition-all duration-500" style="width: 8%;"></div>
+      </div>
+      <div class="flex justify-between items-center text-xs pt-1">
+        <span class="text-slate-400">Execution Benchmark</span>
+        <span class="font-extrabold text-gold-400 gold-glow" id="sidebar-score">0%</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Body -->
+  <main class="flex-1 flex flex-col h-full overflow-y-auto relative pb-20 md:pb-6">
+    <!-- Top Header Bar -->
+    <header class="bg-steel-900/90 backdrop-blur border-b border-slate-800/80 p-4 sticky top-0 z-10 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <h2 id="page-title" class="text-lg md:text-xl font-extrabold text-white tracking-wide">Today's Tactical Execution</h2>
+        <span id="current-date-badge" class="hidden sm:inline-block px-3 py-1 text-xs rounded-full bg-steel-800 text-gold-400 border border-gold-500/20 font-semibold"></span>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button onclick="processDailyRolloverManually()" title="Trigger Day Rollover Processing" class="px-3 py-1.5 rounded-lg bg-steel-800 hover:bg-steel-800/80 border border-slate-700 text-xs font-semibold text-gold-400 flex items-center space-x-1.5 transition-all">
+          <i class="fa-solid fa-arrows-rotate text-gold-400"></i>
+          <span class="hidden sm:inline">Refresh Day</span>
+        </button>
+        <button onclick="openAddTaskModal()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-crimson-600 to-crimson-500 hover:from-crimson-500 hover:to-crimson-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg crimson-glow transition-all">
+          <i class="fa-solid fa-plus"></i>
+          <span>New Tactic</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- App View Container -->
+    <div class="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
+
+      <!-- View 1: Today's Execution Tasks -->
+      <section id="view-today" class="space-y-6">
+        <!-- Quick Performance Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="glass-card p-4 rounded-xl border border-gold-500/10">
+            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Today's Progress</p>
+            <div class="flex items-baseline space-x-2 mt-2">
+              <span class="text-2xl font-black text-white" id="today-tasks-completed">0</span>
+              <span class="text-xs text-slate-400" id="today-tasks-total">/ 0 tasks</span>
+            </div>
+            <div class="w-full bg-steel-950 h-2 rounded-full mt-3 overflow-hidden border border-slate-800">
+              <div id="today-progress-bar" class="bg-gradient-to-r from-crimson-500 to-gold-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-xl border border-gold-500/10">
+            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Execution Rate</p>
+            <div class="flex items-baseline space-x-2 mt-2">
+              <span class="text-2xl font-black text-gold-400 gold-glow" id="today-execution-rate">0%</span>
+              <span class="text-[10px] text-jade-400 font-bold bg-jade-600/20 px-1.5 py-0.5 rounded border border-jade-500/30">Target 85%+</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">12-Week Warrior Benchmark</p>
+          </div>
+
+          <div class="glass-card p-4 rounded-xl border border-gold-500/10">
+            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Rolled Tactics</p>
+            <div class="flex items-baseline space-x-2 mt-2">
+              <span class="text-2xl font-black text-gold-500" id="today-rolled-count">0</span>
+              <span class="text-xs text-slate-400">Medium Priority</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Shifted automatically from yesterday</p>
+          </div>
+
+          <div class="glass-card p-4 rounded-xl border border-gold-500/10">
+            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">Critical High Priority</p>
+            <div class="flex items-baseline space-x-2 mt-2">
+              <span class="text-2xl font-black text-crimson-500" id="today-high-count">0</span>
+              <span class="text-xs text-slate-400">Non-negotiable</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Must accomplish today</p>
+          </div>
+        </div>
+
+        <!-- Task List Container -->
+        <div class="glass-card rounded-xl border border-slate-800 overflow-hidden">
+          <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-steel-850">
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-shield-cat text-crimson-500"></i> Tactical Checklist
+            </h3>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+              <select id="filter-priority" onchange="renderTasks()" class="bg-steel-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:ring-gold-500 focus:border-gold-500">
+                <option value="all">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+              <select id="filter-status" onchange="renderTasks()" class="bg-steel-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:ring-gold-500 focus:border-gold-500">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="tasks-container" class="divide-y divide-slate-800/60 p-2">
+            <!-- Dynamic task rows injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Summaries & Analytics Dashboard -->
+      <section id="view-summaries" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Daily Summary Card -->
+          <div class="glass-card p-5 rounded-xl border border-crimson-600/30 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-day text-crimson-500"></i> Daily Task Summary
+              </h4>
+              <span class="text-xs bg-steel-900 text-gold-400 px-2 py-0.5 rounded font-mono border border-gold-500/20" id="sum-daily-date">Today</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Completed Tasks Today:</span>
+              <span class="text-base font-extrabold text-white" id="sum-daily-completed">0 / 0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Execution Score Today:</span>
+              <span class="text-base font-extrabold text-gold-400 gold-glow" id="sum-daily-score">0%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Rolled Medium Tasks:</span>
+              <span class="text-xs font-bold text-gold-500" id="sum-daily-rolled">0</span>
+            </div>
+          </div>
+
+          <!-- Weekly Summary Card -->
+          <div class="glass-card p-5 rounded-xl border border-gold-500/30 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-week text-gold-500"></i> Weekly Summary
+              </h4>
+              <span class="text-xs bg-steel-900 text-gold-400 px-2 py-0.5 rounded font-mono border border-gold-500/20" id="sum-weekly-label">Week 1</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Tasks Completed This Week:</span>
+              <span class="text-base font-extrabold text-white" id="sum-weekly-completed">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Weekly Execution Score:</span>
+              <span class="text-base font-extrabold text-jade-400" id="sum-weekly-score">0%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">12-Week Target Threshold:</span>
+              <span class="text-xs font-bold text-slate-300">85%+ High Perform</span>
+            </div>
+          </div>
+
+          <!-- Monthly Summary Card -->
+          <div class="glass-card p-5 rounded-xl border border-jade-500/30 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-jade-400"></i> Monthly / Cycle Summary
+              </h4>
+              <span class="text-xs bg-steel-900 text-jade-400 px-2 py-0.5 rounded font-mono border border-jade-500/20" id="sum-monthly-label">30-Day Rolling</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Total Completed Tactics:</span>
+              <span class="text-base font-extrabold text-white" id="sum-monthly-completed">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Active High-Priority Items:</span>
+              <span class="text-base font-extrabold text-crimson-500" id="sum-monthly-high">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Warrior Discipline Index:</span>
+              <span class="text-xs font-bold text-gold-400">Unstoppable</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-card p-4 rounded-xl border border-slate-800">
+            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
+              <i class="fa-solid fa-chart-area text-crimson-500"></i> Weekly Execution Score Trend (%)
+            </h4>
+            <div class="h-64 relative">
+              <canvas id="weeklyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-xl border border-slate-800">
+            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
+              <i class="fa-solid fa-chart-pie text-gold-500"></i> Completed Task Priority Distribution
+            </h4>
+            <div class="h-64 relative">
+              <canvas id="priorityBreakdownChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 3: 12-Week Goals Mapping -->
+      <section id="view-goals" class="space-y-6 hidden">
+        <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-extrabold text-white">12-Week Tactical Goals</h3>
+              <p class="text-xs text-slate-400">Translate vision into tactical goals and weekly tactics</p>
+            </div>
+            <button onclick="openAddGoalModal()" class="px-3.5 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs flex items-center space-x-1.5 crimson-glow transition-all">
+              <i class="fa-solid fa-plus"></i>
+              <span>Add Goal</span>
+            </button>
+          </div>
+
+          <div id="goals-container" class="space-y-4">
+            <!-- Dynamic goals injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Time Blocking System -->
+      <section id="view-timeblocks" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="glass-card p-5 rounded-xl border-l-4 border-l-crimson-500 border-y border-r border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-crimson-400 flex items-center gap-2">
+                <i class="fa-solid fa-fire"></i> Strategic Blocks
+              </h4>
+              <span class="text-xs bg-crimson-900/50 text-crimson-300 px-2 py-0.5 rounded border border-crimson-500/30 font-semibold">3 Hours / Block</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Uninterrupted deep work blocks strictly dedicated to strategic tactics that directly drive your 12-week goals. Zero distractions.
+            </p>
+            <div class="pt-2">
+              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
+              <p class="text-xs font-extrabold text-gold-400">At least 1-2 blocks per week</p>
+            </div>
+          </div>
+
+          <div class="glass-card p-5 rounded-xl border-l-4 border-l-gold-500 border-y border-r border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-gold-400 flex items-center gap-2">
+                <i class="fa-solid fa-shield"></i> Buffer Blocks
+              </h4>
+              <span class="text-xs bg-gold-500/10 text-gold-400 px-2 py-0.5 rounded border border-gold-500/30 font-semibold">30-60 Mins</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Scheduled time to handle administrative tasks, quick communications, emails, and unexpected daily interruptions.
+            </p>
+            <div class="pt-2">
+              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
+              <p class="text-xs font-extrabold text-white">1-2 blocks daily</p>
+            </div>
+          </div>
+
+          <div class="glass-card p-5 rounded-xl border-l-4 border-l-jade-500 border-y border-r border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-jade-400 flex items-center gap-2">
+                <i class="fa-solid fa-feather-pointed"></i> Breakout Blocks
+              </h4>
+              <span class="text-xs bg-jade-600/20 text-jade-400 px-2 py-0.5 rounded border border-jade-500/30 font-semibold">3 Hours</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Dedicated time spent away from work during normal work hours to recharge mental clarity, stimulate creative thinking, and prevent burnout.
+            </p>
+            <div class="pt-2">
+              <p class="text-[11px] font-bold text-slate-400 uppercase">Recommended Frequency:</p>
+              <p class="text-xs font-extrabold text-white">1 block per week</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 5: Sync & Cloud Settings -->
+      <section id="view-sync" class="space-y-6 hidden">
+        <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-6 max-w-3xl">
+          <div>
+            <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-rotate text-gold-500"></i> Device Sync & Backups
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Sync your tactics across mobile and desktop devices using your custom synchronization code.
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="bg-steel-900 p-4 rounded-xl border border-slate-800 space-y-3">
+              <label class="text-xs font-bold text-slate-300 block">Unique Device Sync Code</label>
+              <div class="flex items-center space-x-2">
+                <input type="text" id="sync-pair-code" class="bg-steel-950 border border-slate-700 text-xs font-mono text-gold-400 rounded-lg p-2.5 flex-1 focus:outline-none" readonly>
+                <button onclick="copySyncCode()" class="px-4 py-2.5 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
+                  <i class="fa-regular fa-copy"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
+              <div>
+                <p class="text-xs font-bold text-slate-300">Export Backup Data</p>
+                <p class="text-[11px] text-slate-500">Download all your tasks, goals, and history as JSON</p>
+              </div>
+              <button onclick="exportDataJSON()" class="px-3.5 py-2 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
+                Export Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-steel-900/95 backdrop-blur border-t border-slate-800 flex justify-around p-2 z-30">
+    <button onclick="switchTab('today')" data-tab="today" class="nav-btn flex flex-col items-center p-2 text-gold-400">
+      <i class="fa-solid fa-shield-halved text-base"></i>
+      <span class="text-[10px] mt-1 font-semibold">Today</span>
+    </button>
+    <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn flex flex-col items-center p-2 text-slate-400">
+      <i class="fa-solid fa-chart-line text-base"></i>
+      <span class="text-[10px] mt-1 font-semibold">Summary</span>
+    </button>
+    <button onclick="switchTab('goals')" data-tab="goals" class="nav-btn flex flex-col items-center p-2 text-slate-400">
+      <i class="fa-solid fa-bullseye text-base"></i>
+      <span class="text-[10px] mt-1 font-semibold">Goals</span>
+    </button>
+    <button onclick="switchTab('timeblocks')" data-tab="timeblocks" class="nav-btn flex flex-col items-center p-2 text-slate-400">
+      <i class="fa-solid fa-hourglass-half text-base"></i>
+      <span class="text-[10px] mt-1 font-semibold">Blocks</span>
+    </button>
+    <button onclick="switchTab('sync')" data-tab="sync" class="nav-btn flex flex-col items-center p-2 text-slate-400">
+      <i class="fa-solid fa-rotate text-base"></i>
+      <span class="text-[10px] mt-1 font-semibold">Sync</span>
+    </button>
+  </nav>
+
+  <!-- New Task Modal -->
+  <div id="modal-task" class="fixed inset-0 bg-steel-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-steel-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-extrabold text-white">New Tactical Task</h3>
+        <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Task Description</label>
+          <input type="text" id="task-input-title" placeholder="e.g. Conduct 10 client outreach calls" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Priority Level</label>
+            <select id="task-input-priority" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500">
+              <option value="high">High (Critical)</option>
+              <option value="medium" selected>Medium (Auto-Rollover)</option>
+              <option value="low">Low (Flexible)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Target Week</label>
+            <select id="task-input-week" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Associated Goal (Optional)</label>
+          <select id="task-input-goal" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-gold-500">
+            <option value="">General Execution</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAddTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-steel-800">Cancel</button>
+        <button onclick="saveTask()" class="px-5 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs shadow-lg crimson-glow">Save Tactic</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Goal Modal -->
+  <div id="modal-goal" class="fixed inset-0 bg-steel-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-steel-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-extrabold text-white">Add 12-Week Goal</h3>
+        <button onclick="closeAddGoalModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">12-Week Goal Title</label>
+          <input type="text" id="goal-input-title" placeholder="e.g. Master Martial Discipline Routine" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Target Key Metric / Outcome</label>
+          <input type="text" id="goal-input-metric" placeholder="e.g. 100% On-Time Weekly Execution" class="w-full bg-steel-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-gold-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAddGoalModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-steel-800">Cancel</button>
+        <button onclick="saveGoal()" class="px-5 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs shadow-lg crimson-glow">Save Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Global Application State */
+    const APP_STATE_KEY = '12wy_warrior_execution_os_data';
+    
+    let appData = {
+      cycleStartDate: new Date().toISOString(),
+      tasks: [],
+      goals: [],
+      lastProcessedDate: new Date().toISOString().split('T')[0],
+      syncPairCode: generatePairCode()
+    };
+
+    let weeklyChartInstance = null;
+    let priorityChartInstance = null;
+
+    /* Initialize App */
+    window.onload = function() {
+      loadData();
+      checkDailyRollover();
+      setupWeekDropdowns();
+      renderAll();
+      initCharts();
+      updateDateBadges();
+    };
+
+    function generatePairCode() {
+      return 'WARRIOR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    function updateDateBadges() {
+      const today = new Date();
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('current-date-badge').innerText = today.toLocaleDateString('en-US', options);
+      document.getElementById('sum-daily-date').innerText = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function setupWeekDropdowns() {
+      const weekSelect = document.getElementById('task-input-week');
+      weekSelect.innerHTML = '';
+      for (let i = 1; i <= 12; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Week ${i}`;
+        weekSelect.appendChild(opt);
+      }
+    }
+
+    /* Tab Switching Logic */
+    function switchTab(tabId) {
+      document.querySelectorAll('main > div > section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+      // Update Desktop Nav styles
+      document.querySelectorAll('#desktop-nav .nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.className = 'nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all text-gold-400 bg-crimson-900/40 border border-crimson-600/40 crimson-glow';
+        } else {
+          btn.className = 'nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all';
+        }
+      });
+
+      // Update Page Title
+      const titles = {
+        today: "Today's Tactical Execution",
+        summaries: "Execution Summaries & Analytics",
+        goals: "12-Week Goals & Roadmap",
+        timeblocks: "Tactical Time Blocks",
+        sync: "Device Sync & Backups"
+      };
+      document.getElementById('page-title').innerText = titles[tabId] || 'Warrior OS';
+
+      if (tabId === 'summaries') {
+        updateCharts();
+      }
+    }
+
+    /* Daily Task Rollover Logic (Medium Priority Auto-Shift) */
+    function checkDailyRollover() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (appData.lastProcessedDate !== todayStr) {
+        processDailyRollover(todayStr);
+      }
+    }
+
+    function processDailyRolloverManually() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      processDailyRollover(todayStr);
+      renderAll();
+      alert('Day refresh complete! Medium priority tasks rolled over to today.');
+    }
+
+    function processDailyRollover(todayStr) {
+      appData.tasks.forEach(task => {
+        if (!task.completed && task.scheduledDate && task.scheduledDate < todayStr) {
+          if (task.priority === 'medium') {
+            task.scheduledDate = todayStr;
+            task.rolloverCount = (task.rolloverCount || 0) + 1;
+          }
+        }
+      });
+
+      appData.lastProcessedDate = todayStr;
+      saveData();
+    }
+
+    /* Data Persistence */
+    function saveData() {
+      localStorage.setItem(APP_STATE_KEY, JSON.stringify(appData));
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem(APP_STATE_KEY);
+      if (saved) {
+        try {
+          appData = JSON.parse(saved);
+        } catch(e) {
+          console.error("Error parsing stored data", e);
+        }
+      } else {
+        // Initial warrior sample tactics
+        appData.tasks = [
+          { id: '1', title: 'Complete Morning Warrior Focus Session', priority: 'high', completed: false, week: 1, rolloverCount: 0, scheduledDate: new Date().toISOString().split('T')[0] },
+          { id: '2', title: 'Review 12-Week Strategic Objectives', priority: 'medium', completed: true, week: 1, rolloverCount: 1, scheduledDate: new Date().toISOString().split('T')[0] },
+          { id: '3', title: 'Schedule Strategic Buffer Block', priority: 'low', completed: false, week: 1, rolloverCount: 0, scheduledDate: new Date().toISOString().split('T')[0] }
+        ];
+        appData.goals = [
+          { id: 'g1', title: 'Maintain 85%+ Execution Score Daily', metric: '100% daily tactic completion' }
+        ];
+        saveData();
+      }
+      document.getElementById('sync-pair-code').value = appData.syncPairCode || generatePairCode();
+    }
+
+    /* UI Rendering Functions */
+    function renderAll() {
+      renderTasks();
+      renderGoals();
+      updateSummariesAndBadges();
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasks-container');
+      container.innerHTML = '';
+
+      const priorityFilter = document.getElementById('filter-priority').value;
+      const statusFilter = document.getElementById('filter-status').value;
+
+      let filtered = appData.tasks.filter(t => {
+        if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+        if (statusFilter === 'completed' && !t.completed) return false;
+        if (statusFilter === 'pending' && t.completed) return false;
+        return true;
+      });
+
+      // Sort: High priority first, then rolled medium items
+      filtered.sort((a, b) => {
+        const pOrder = { high: 1, medium: 2, low: 3 };
+        if (pOrder[a.priority] !== pOrder[b.priority]) {
+          return pOrder[a.priority] - pOrder[b.priority];
+        }
+        return (b.rolloverCount || 0) - (a.rolloverCount || 0);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-500 text-xs">
+            No tactics found for current selection.
+          </div>`;
+        return;
+      }
+
+      filtered.forEach(task => {
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between p-3 rounded-xl transition-all ${task.completed ? 'opacity-50 bg-steel-900/30' : 'hover:bg-steel-800/60 bg-steel-900/80'}`;
+        
+        let priorityBadge = '';
+        if (task.priority === 'high') {
+          priorityBadge = `<span class="text-[10px] bg-crimson-600/20 text-crimson-400 border border-crimson-500/30 px-2 py-0.5 rounded font-bold uppercase">High</span>`;
+        } else if (task.priority === 'medium') {
+          priorityBadge = `<span class="text-[10px] bg-gold-500/10 text-gold-400 border border-gold-500/30 px-2 py-0.5 rounded font-bold uppercase">Med</span>`;
+        } else {
+          priorityBadge = `<span class="text-[10px] bg-steel-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded font-bold uppercase">Low</span>`;
+        }
+
+        let rolloverBadge = '';
+        if (task.rolloverCount && task.rolloverCount > 0) {
+          rolloverBadge = `<span class="text-[10px] bg-gold-500/20 text-gold-300 px-2 py-0.5 rounded-full font-extrabold badge-rollover border border-gold-500/30"><i class="fa-solid fa-arrows-rotate text-[9px] mr-1"></i>Rolled x${task.rolloverCount}</span>`;
+        }
+
+        item.innerHTML = `
+          <div class="flex items-center space-x-3 flex-1 min-w-0 pr-3">
+            <button onclick="toggleTaskCompletion('${task.id}')" class="w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.completed ? 'bg-jade-500 border-jade-500 text-slate-950 font-bold' : 'border-slate-700 hover:border-gold-500 text-transparent'}">
+              <i class="fa-solid fa-check text-xs"></i>
+            </button>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs sm:text-sm font-semibold ${task.completed ? 'line-through text-slate-500' : 'text-slate-100'} truncate">${task.title}</p>
+              <div class="flex items-center space-x-2 mt-1">
+                ${priorityBadge}
+                ${rolloverBadge}
+                <span class="text-[10px] text-slate-500">W${task.week || 1}</span>
+              </div>
+            </div>
+          </div>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-600 hover:text-crimson-400 p-1 transition-colors">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function toggleTaskCompletion(id) {
+      const task = appData.tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveData();
+        renderAll();
+      }
+    }
+
+    function deleteTask(id) {
+      appData.tasks = appData.tasks.filter(t => t.id !== id);
+      saveData();
+      renderAll();
+    }
+
+    /* Modal Management */
+    function openAddTaskModal() {
+      document.getElementById('modal-task').classList.remove('hidden');
+      updateGoalOptionsInModal();
+    }
+    function closeAddTaskModal() {
+      document.getElementById('modal-task').classList.add('hidden');
+    }
+    function openAddGoalModal() {
+      document.getElementById('modal-goal').classList.remove('hidden');
+    }
+    function closeAddGoalModal() {
+      document.getElementById('modal-goal').classList.add('hidden');
+    }
+
+    function updateGoalOptionsInModal() {
+      const select = document.getElementById('task-input-goal');
+      select.innerHTML = '<option value="">General Execution</option>';
+      appData.goals.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.innerText = g.title;
+        select.appendChild(opt);
+      });
+    }
+
+    function saveTask() {
+      const title = document.getElementById('task-input-title').value.trim();
+      const priority = document.getElementById('task-input-priority').value;
+      const week = parseInt(document.getElementById('task-input-week').value);
+      const goalId = document.getElementById('task-input-goal').value;
+
+      if (!title) return alert('Please enter a task title');
+
+      const newTask = {
+        id: Date.now().toString(),
+        title,
+        priority,
+        week,
+        goalId,
+        completed: false,
+        rolloverCount: 0,
+        scheduledDate: new Date().toISOString().split('T')[0]
+      };
+
+      appData.tasks.push(newTask);
+      saveData();
+      renderAll();
+      closeAddTaskModal();
+      document.getElementById('task-input-title').value = '';
+    }
+
+    function saveGoal() {
+      const title = document.getElementById('goal-input-title').value.trim();
+      const metric = document.getElementById('goal-input-metric').value.trim();
+
+      if (!title) return alert('Please enter a goal title');
+
+      appData.goals.push({ id: Date.now().toString(), title, metric });
+      saveData();
+      renderAll();
+      closeAddGoalModal();
+      document.getElementById('goal-input-title').value = '';
+      document.getElementById('goal-input-metric').value = '';
+    }
+
+    function renderGoals() {
+      const container = document.getElementById('goals-container');
+      container.innerHTML = '';
+
+      if (appData.goals.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500">No 12-week goals defined yet.</p>`;
+        return;
+      }
+
+      appData.goals.forEach(goal => {
+        const tasksForGoal = appData.tasks.filter(t => t.goalId === goal.id);
+        const completedTasks = tasksForGoal.filter(t => t.completed).length;
+        const progress = tasksForGoal.length ? Math.round((completedTasks / tasksForGoal.length) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = "bg-steel-900/60 p-4 rounded-xl border border-slate-800 space-y-2";
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="text-sm font-extrabold text-white">${goal.title}</h4>
+              <p class="text-xs text-slate-400">Target Metric: ${goal.metric || 'N/A'}</p>
+            </div>
+            <span class="text-xs font-bold text-gold-400 bg-gold-500/10 border border-gold-500/20 px-2 py-0.5 rounded">${progress}%</span>
+          </div>
+          <div class="w-full bg-steel-950 h-2 rounded-full overflow-hidden border border-slate-800">
+            <div class="bg-gradient-to-r from-crimson-600 to-gold-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500">${completedTasks} of ${tasksForGoal.length} tactical tasks accomplished</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* Summaries Computation */
+    function updateSummariesAndBadges() {
+      const totalTasks = appData.tasks.length;
+      const completedTasks = appData.tasks.filter(t => t.completed).length;
+      const executionRate = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      // Update Today Badges
+      document.getElementById('today-tasks-completed').innerText = completedTasks;
+      document.getElementById('today-tasks-total').innerText = `/ ${totalTasks} tasks`;
+      document.getElementById('today-progress-bar').style.width = `${executionRate}%`;
+      document.getElementById('today-execution-rate').innerText = `${executionRate}%`;
+
+      const rolledCount = appData.tasks.reduce((acc, t) => acc + (t.rolloverCount || 0), 0);
+      document.getElementById('today-rolled-count').innerText = rolledCount;
+
+      const highCount = appData.tasks.filter(t => t.priority === 'high' && !t.completed).length;
+      document.getElementById('today-high-count').innerText = highCount;
+
+      // Sidebar Updates
+      document.getElementById('sidebar-score').innerText = `${executionRate}%`;
+
+      // Summaries View Data
+      document.getElementById('sum-daily-completed').innerText = `${completedTasks} / ${totalTasks}`;
+      document.getElementById('sum-daily-score').innerText = `${executionRate}%`;
+      document.getElementById('sum-daily-rolled').innerText = rolledCount;
+
+      document.getElementById('sum-weekly-completed').innerText = completedTasks;
+      document.getElementById('sum-weekly-score').innerText = `${executionRate}%`;
+
+      document.getElementById('sum-monthly-completed').innerText = completedTasks;
+      document.getElementById('sum-monthly-high').innerText = highCount;
+    }
+
+    /* Chart.js Setup */
+    function initCharts() {
+      const ctxWeekly = document.getElementById('weeklyTrendChart').getContext('2d');
+      weeklyChartInstance = new Chart(ctxWeekly, {
+        type: 'line',
+        data: {
+          labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+          datasets: [{
+            label: 'Execution Score (%)',
+            data: [85, 88, 92, 86, 90, 0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#d32f2f',
+            backgroundColor: 'rgba(211, 47, 47, 0.15)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 0, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      const ctxPriority = document.getElementById('priorityBreakdownChart').getContext('2d');
+      priorityChartInstance = new Chart(ctxPriority, {
+        type: 'doughnut',
+        data: {
+          labels: ['High Priority', 'Medium Priority', 'Low Priority'],
+          datasets: [{
+            data: [3, 5, 2],
+            backgroundColor: ['#d32f2f', '#ffc107', '#2e7d32'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8' } } }
+        }
+      });
+    }
+
+    function updateCharts() {
+      if (!priorityChartInstance) return;
+
+      const high = appData.tasks.filter(t => t.priority === 'high' && t.completed).length;
+      const med = appData.tasks.filter(t => t.priority === 'medium' && t.completed).length;
+      const low = appData.tasks.filter(t => t.priority === 'low' && t.completed).length;
+
+      priorityChartInstance.data.datasets[0].data = [high || 1, med || 1, low || 1];
+      priorityChartInstance.update();
+    }
+
+    function copySyncCode() {
+      const input = document.getElementById('sync-pair-code');
+      input.select();
+      document.execCommand('copy');
+      alert('Warrior Sync Code copied to clipboard!');
+    }
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "12_week_warrior_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+  </script>
+</body>
+</html>
