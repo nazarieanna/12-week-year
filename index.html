@@ -392,7 +392,8 @@
             <div class="bg-steel-900 p-4 rounded-xl border border-slate-800 space-y-3">
               <label class="text-xs font-bold text-slate-300 block">Unique Device Sync Code</label>
               <div class="flex items-center space-x-2">
-                <input type="text" id="sync-pair-code" class="bg-steel-950 border border-slate-700 text-xs font-mono text-gold-400 rounded-lg p-2.5 flex-1 focus:outline-none" readonly>
+                <input type="text" id="syncCodeInput" class="..." placeholder="Enter Sync Code" />
+                <button onclick="localStorage.setItem('warrior_sync_code', document.getElementById('syncCodeInput').value); location.reload();" class="btn">Apply Code</button>
                 <button onclick="copySyncCode()" class="px-4 py-2.5 bg-steel-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-all">
                   <i class="fa-regular fa-copy"></i> Copy
                 </button>
