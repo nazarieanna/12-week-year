@@ -12,7 +12,7 @@
   <!-- Chart.js for Summaries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Firebase SDKs (v9 Compat for easy web integration) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -64,6 +64,10 @@
           <i class="fa-solid fa-shield-halved w-5 text-center text-crimson-500"></i>
           <span>Today's Battles</span>
         </button>
+        <button onclick="switchTab('archive')" data-tab="archive" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
+          <i class="fa-solid fa-box-archive w-5 text-center text-gold-500"></i>
+          <span>Daily Archive Log</span>
+        </button>
         <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-100 hover:bg-steel-800 transition-all">
           <i class="fa-solid fa-chart-line w-5 text-center text-gold-500"></i>
           <span>Execution Summaries</span>
@@ -109,9 +113,9 @@
       </div>
       
       <div class="flex items-center space-x-2">
-        <button onclick="processDailyRolloverManually()" title="Trigger Day Rollover Processing" class="px-3 py-1.5 rounded-lg bg-steel-800 hover:bg-steel-800/80 border border-slate-700 text-xs font-semibold text-gold-400 flex items-center space-x-1.5 transition-all">
-          <i class="fa-solid fa-arrows-rotate text-gold-400"></i>
-          <span class="hidden sm:inline">Refresh Day</span>
+        <button onclick="processDailyRolloverManually()" title="Trigger Midnight Reset & Archive" class="px-3 py-1.5 rounded-lg bg-steel-800 hover:bg-steel-800/80 border border-slate-700 text-xs font-semibold text-gold-400 flex items-center space-x-1.5 transition-all">
+          <i class="fa-solid fa-moon text-gold-400"></i>
+          <span class="hidden sm:inline">Midnight Reset</span>
         </button>
         <button onclick="openAddTaskModal()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-crimson-600 to-crimson-500 hover:from-crimson-500 hover:to-crimson-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg crimson-glow transition-all">
           <i class="fa-solid fa-plus"></i>
@@ -167,7 +171,7 @@
         <div class="glass-card rounded-xl border border-slate-800 overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-steel-850">
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
-              <i class="fa-solid fa-shield-cat text-crimson-500"></i> Tactical Checklist
+              <i class="fa-solid fa-shield-cat text-crimson-500"></i> Active Tactical Checklist
             </h3>
             <div class="flex items-center space-x-2 w-full sm:w-auto">
               <select id="filter-priority" onchange="renderTasks()" class="bg-steel-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:ring-gold-500 focus:border-gold-500">
@@ -179,7 +183,7 @@
               <select id="filter-status" onchange="renderTasks()" class="bg-steel-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:ring-gold-500 focus:border-gold-500">
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
+                <option value="completed">Completed Today</option>
               </select>
             </div>
           </div>
@@ -188,12 +192,27 @@
         </div>
       </section>
 
-      <!-- View 2: Summaries Dashboard -->
+      <!-- View 2: Daily Archive Log -->
+      <section id="view-archive" class="space-y-6 hidden">
+        <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                <i class="fa-solid fa-box-archive text-gold-400"></i> Historical Daily Logs
+              </h3>
+              <p class="text-xs text-slate-400">Permanently archived daily snapshots of completed tasks & execution metrics.</p>
+            </div>
+          </div>
+          <div id="archive-container" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- View 3: Summaries Dashboard -->
       <section id="view-summaries" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="glass-card p-5 rounded-xl border border-crimson-600/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-crimson-500"></i> Daily Task Summary</h4>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-crimson-500"></i> Today's Task Summary</h4>
             </div>
             <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Completed Tasks:</span><span class="text-base font-extrabold text-white" id="sum-daily-completed">0 / 0</span></div>
             <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Execution Score:</span><span class="text-base font-extrabold text-gold-400 gold-glow" id="sum-daily-score">0%</span></div>
@@ -201,15 +220,15 @@
 
           <div class="glass-card p-5 rounded-xl border border-gold-500/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-gold-500"></i> Weekly Summary</h4>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-gold-500"></i> Archived History Stats</h4>
             </div>
-            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Tasks Completed:</span><span class="text-base font-extrabold text-white" id="sum-weekly-completed">0</span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Weekly Score:</span><span class="text-base font-extrabold text-jade-400" id="sum-weekly-score">0%</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Days Logged:</span><span class="text-base font-extrabold text-white" id="sum-weekly-completed">0</span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Average Execution Score:</span><span class="text-base font-extrabold text-jade-400" id="sum-weekly-score">0%</span></div>
           </div>
 
           <div class="glass-card p-5 rounded-xl border border-jade-500/30 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-jade-400"></i> 12-Week Cycle</h4>
+              <h4 class="font-bold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-jade-400"></i> Total Lifetime Completed</h4>
             </div>
             <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Total Completed Tactics:</span><span class="text-base font-extrabold text-white" id="sum-monthly-completed">0</span></div>
             <div class="flex justify-between items-center"><span class="text-xs text-slate-400">Active High Priority:</span><span class="text-base font-extrabold text-crimson-500" id="sum-monthly-high">0</span></div>
@@ -223,18 +242,18 @@
           </div>
 
           <div class="glass-card p-4 rounded-xl border border-slate-800">
-            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-chart-pie text-gold-500"></i> Priority Distribution</h4>
+            <h4 class="text-xs font-extrabold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-chart-pie text-gold-500"></i> Active Priority Distribution</h4>
             <div class="h-64 relative"><canvas id="priorityBreakdownChart"></canvas></div>
           </div>
         </div>
       </section>
 
-      <!-- View 3: Goals -->
+      <!-- View 4: Goals -->
       <section id="view-goals" class="space-y-6 hidden">
         <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4">
           <div class="flex justify-between items-center">
             <div>
-              <h3 class="text-lg font-extrabold text-white">12-Week Tactical Goals</h3>
+              <h3 class="text-lg font-extrabold text-white">12-Week Strategic Goals</h3>
               <p class="text-xs text-slate-400">Translate vision into tactical goals</p>
             </div>
             <button onclick="openAddGoalModal()" class="px-3.5 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-500 text-white font-bold text-xs flex items-center space-x-1.5 crimson-glow transition-all">
@@ -245,7 +264,7 @@
         </div>
       </section>
 
-      <!-- View 4: Time Blocks -->
+      <!-- View 5: Time Blocks -->
       <section id="view-timeblocks" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="glass-card p-5 rounded-xl border-l-4 border-l-crimson-500 border-y border-r border-slate-800 space-y-3">
@@ -263,7 +282,7 @@
         </div>
       </section>
 
-      <!-- View 5: Sync Status -->
+      <!-- View 6: Sync Status -->
       <section id="view-sync" class="space-y-6 hidden">
         <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-4 max-w-2xl">
           <h3 class="text-lg font-extrabold text-white flex items-center gap-2"><i class="fa-solid fa-cloud-check text-jade-400"></i> Realtime Database Status</h3>
@@ -284,6 +303,7 @@
   <!-- Mobile Navigation -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-steel-900/95 backdrop-blur border-t border-slate-800 flex justify-around p-2 z-30">
     <button onclick="switchTab('today')" data-tab="today" class="nav-btn flex flex-col items-center p-2 text-gold-400"><i class="fa-solid fa-shield-halved text-base"></i><span class="text-[10px] mt-1 font-semibold">Today</span></button>
+    <button onclick="switchTab('archive')" data-tab="archive" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-box-archive text-base"></i><span class="text-[10px] mt-1 font-semibold">Archive</span></button>
     <button onclick="switchTab('summaries')" data-tab="summaries" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-chart-line text-base"></i><span class="text-[10px] mt-1 font-semibold">Summary</span></button>
     <button onclick="switchTab('goals')" data-tab="goals" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-bullseye text-base"></i><span class="text-[10px] mt-1 font-semibold">Goals</span></button>
     <button onclick="switchTab('timeblocks')" data-tab="timeblocks" class="nav-btn flex flex-col items-center p-2 text-slate-400"><i class="fa-solid fa-hourglass-half text-base"></i><span class="text-[10px] mt-1 font-semibold">Blocks</span></button>
@@ -373,7 +393,8 @@
       currentWeek: 1,
       lastRolloverDate: new Date().toISOString().split('T')[0],
       tasks: [],
-      goals: []
+      goals: [],
+      dailyArchive: [] // Stores historical daily snapshots
     };
 
     let trendChart = null;
@@ -389,6 +410,7 @@
         appData.lastRolloverDate = data.lastRolloverDate || new Date().toISOString().split('T')[0];
         appData.tasks = data.tasks ? Object.values(data.tasks) : [];
         appData.goals = data.goals ? Object.values(data.goals) : [];
+        appData.dailyArchive = data.dailyArchive ? Object.values(data.dailyArchive) : [];
       }
       checkAndPerformDailyRollover();
       renderAll();
@@ -399,29 +421,49 @@
     }
 
     /* ========================================================= */
-    /* DAILY ROLLOVER LOGIC                                      */
+    /* DAILY ROLLOVER & ARCHIVE LOGIC (12:00 AM RESET)           */
     /* ========================================================= */
     function checkAndPerformDailyRollover() {
       const todayStr = new Date().toISOString().split('T')[0];
       if (appData.lastRolloverDate !== todayStr) {
-        processDailyRollover();
+        processDailyRollover(appData.lastRolloverDate);
         appData.lastRolloverDate = todayStr;
         syncToFirebase();
       }
     }
 
     function processDailyRolloverManually() {
-      processDailyRollover();
+      const dateToArchive = appData.lastRolloverDate;
+      processDailyRollover(dateToArchive);
       appData.lastRolloverDate = new Date().toISOString().split('T')[0];
       syncToFirebase();
-      alert('Daily execution rollover completed!');
+      alert('Midnight Reset completed! Completed tasks have been archived to your Daily Archive Log.');
     }
 
-    function processDailyRollover() {
-      let rolledCount = 0;
+    function processDailyRollover(archiveDateStr) {
+      const completedToday = appData.tasks.filter(t => t.completed);
+      const totalToday = appData.tasks.length;
+      const score = totalToday > 0 ? Math.round((completedToday.length / totalToday) * 100) : 0;
+
+      // 1. Archive today's metrics and completed tasks if any tasks existed
+      if (totalToday > 0 || completedToday.length > 0) {
+        const archiveEntry = {
+          id: 'archive_' + Date.now(),
+          date: archiveDateStr,
+          completedCount: completedToday.length,
+          totalCount: totalToday,
+          executionScore: score,
+          tasksCompleted: completedToday.map(t => ({ title: t.title, priority: t.priority, week: t.week }))
+        };
+        appData.dailyArchive.unshift(archiveEntry); // Newest date first
+      }
+
+      // 2. Remove completed tasks from active checklist
+      appData.tasks = appData.tasks.filter(t => !t.completed);
+
+      // 3. Roll over remaining incomplete Medium Priority tasks
       appData.tasks = appData.tasks.map(task => {
-        if (!task.completed && task.priority === 'medium') {
-          rolledCount++;
+        if (task.priority === 'medium') {
           return { ...task, rolledOver: true, rolloverCount: (task.rolloverCount || 0) + 1 };
         }
         return task;
@@ -437,6 +479,7 @@
 
       const titles = {
         'today': "Today's Tactical Execution",
+        'archive': "Daily Execution Archive Log",
         'summaries': "Execution Metrics & Analytics",
         'goals': "12-Week Strategic Goals",
         'timeblocks': "Tactical Time Blocking Strategy",
@@ -458,6 +501,7 @@
     function renderAll() {
       renderSidebar();
       renderTasks();
+      renderArchive();
       renderGoals();
       renderSummaries();
       populateWeekSelect();
@@ -502,7 +546,7 @@
       document.getElementById('today-high-count').innerText = highCount;
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No tactical tasks found. Click "New Tactic" to add one!</div>`;
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No active tasks found. Completed tasks clear out at midnight and save into your Daily Archive!</div>`;
         return;
       }
 
@@ -526,9 +570,57 @@
               </div>
             </div>
           </div>
-          <button onclick="deleteTask('${task.id}')" class="text-slate-500 hover:text-crimson-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash-can"></i></button>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-500 hover:text-crimson-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
         `;
         container.appendChild(item);
+      });
+    }
+
+    function renderArchive() {
+      const container = document.getElementById('archive-container');
+      container.innerHTML = '';
+
+      if (appData.dailyArchive.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No daily history archived yet. Completed tasks will automatically archive here at 12:00 AM each night!</div>`;
+        return;
+      }
+
+      appData.dailyArchive.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = "p-4 bg-steel-850 border border-slate-800 rounded-xl space-y-3";
+        
+        let completedListHtml = '';
+        if (entry.tasksCompleted && entry.tasksCompleted.length > 0) {
+          completedListHtml = `<ul class="space-y-1.5 mt-2">` + 
+            entry.tasksCompleted.map(t => `
+              <li class="text-xs text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-jade-400 text-[10px]"></i>
+                <span>${escapeHtml(t.title)}</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded border bg-slate-900 border-slate-700 text-slate-400 uppercase font-bold">${t.priority}</span>
+              </li>
+            `).join('') + `</ul>`;
+        } else {
+          completedListHtml = `<p class="text-xs text-slate-500 italic mt-1">No tasks completed on this date.</p>`;
+        }
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <div>
+              <span class="text-sm font-extrabold text-white">${entry.date}</span>
+              <span class="text-xs text-slate-400 ml-2">(${entry.completedCount} / ${entry.totalCount} completed)</span>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/30 gold-glow">
+              ${entry.executionScore}% Score
+            </span>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Completed Tactics</p>
+            ${completedListHtml}
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
 
@@ -537,21 +629,37 @@
       container.innerHTML = '';
 
       if (appData.goals.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">No 12-Week Goals created yet.</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">No 12-week goals defined yet.</div>`;
         return;
       }
 
       appData.goals.forEach(goal => {
-        const item = document.createElement('div');
-        item.className = "p-4 rounded-xl bg-steel-850 border border-slate-800 flex justify-between items-center";
-        item.innerHTML = `
-          <div>
-            <h4 class="font-bold text-white text-sm">${escapeHtml(goal.title)}</h4>
-            <p class="text-xs text-gold-400 mt-1">Target Metric: ${escapeHtml(goal.metric)}</p>
+        const goalTasks = appData.tasks.filter(t => t.goalId === goal.id);
+        const completed = goalTasks.filter(t => t.completed).length;
+        const total = goalTasks.length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = "p-4 bg-steel-850 border border-slate-800 rounded-xl space-y-3";
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-extrabold text-slate-100 text-sm">${escapeHtml(goal.title)}</h4>
+              <p class="text-xs text-gold-400 mt-0.5"><i class="fa-solid fa-flag-checkered mr-1"></i> ${escapeHtml(goal.metric || 'In Progress')}</p>
+            </div>
+            <button onclick="deleteGoal('${goal.id}')" class="text-slate-500 hover:text-crimson-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
           </div>
-          <button onclick="deleteGoal('${goal.id}')" class="text-slate-500 hover:text-crimson-500"><i class="fa-solid fa-trash-can"></i></button>
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] font-semibold">
+              <span class="text-slate-400">Tactical Execution</span>
+              <span class="text-gold-400">${pct}% (${completed}/${total})</span>
+            </div>
+            <div class="w-full bg-steel-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div class="bg-gradient-to-r from-crimson-600 to-gold-500 h-full transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+          </div>
         `;
-        container.appendChild(item);
+        container.appendChild(card);
       });
     }
 
@@ -563,15 +671,88 @@
       document.getElementById('sum-daily-completed').innerText = `${completed} / ${total}`;
       document.getElementById('sum-daily-score').innerText = `${score}%`;
 
-      document.getElementById('sum-weekly-completed').innerText = completed;
-      document.getElementById('sum-weekly-score').innerText = `${score}%`;
+      // Archive summary calculation
+      const archivedDays = appData.dailyArchive.length;
+      const avgArchiveScore = archivedDays > 0 
+        ? Math.round(appData.dailyArchive.reduce((acc, curr) => acc + (curr.executionScore || 0), 0) / archivedDays) 
+        : 0;
 
-      document.getElementById('sum-monthly-completed').innerText = completed;
+      document.getElementById('sum-weekly-completed').innerText = archivedDays;
+      document.getElementById('sum-weekly-score').innerText = `${avgArchiveScore}%`;
+
+      // Lifetime completed (active completed + archived completed)
+      const archivedCompletedTotal = appData.dailyArchive.reduce((acc, curr) => acc + (curr.completedCount || 0), 0);
+      document.getElementById('sum-monthly-completed').innerText = completed + archivedCompletedTotal;
       document.getElementById('sum-monthly-high').innerText = appData.tasks.filter(t => t.priority === 'high' && !t.completed).length;
     }
 
+    function renderCharts() {
+      // 1. Execution Score Trend Line Chart
+      const ctxTrend = document.getElementById('weeklyTrendChart').getContext('2d');
+      if (trendChart) trendChart.destroy();
+
+      const weeks = Array.from({ length: 12 }, (_, i) => `W${i + 1}`);
+      const scores = weeks.map((_, idx) => {
+        const weekTasks = appData.tasks.filter(t => (t.week || 1) === (idx + 1));
+        if (weekTasks.length === 0) return 0;
+        const comp = weekTasks.filter(t => t.completed).length;
+        return Math.round((comp / weekTasks.length) * 100);
+      });
+
+      trendChart = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: weeks,
+          datasets: [{
+            label: 'Active Week Execution %',
+            data: scores,
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // 2. Priority Breakdown Pie Chart
+      const ctxBreakdown = document.getElementById('priorityBreakdownChart').getContext('2d');
+      if (breakdownChart) breakdownChart.destroy();
+
+      const high = appData.tasks.filter(t => t.priority === 'high').length;
+      const med = appData.tasks.filter(t => t.priority === 'medium').length;
+      const low = appData.tasks.filter(t => t.priority === 'low').length;
+
+      breakdownChart = new Chart(ctxBreakdown, {
+        type: 'doughnut',
+        data: {
+          labels: ['High', 'Medium', 'Low'],
+          datasets: [{
+            data: [high, med, low],
+            backgroundColor: ['#d32f2f', '#ffc107', '#475569'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#cbd5e1' } }
+          }
+        }
+      });
+    }
+
     /* ========================================================= */
-    /* ACTIONS & MODALS                                          */
+    /* ACTIONS & MUTATIONS                                       */
     /* ========================================================= */
     function toggleTask(id) {
       appData.tasks = appData.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
@@ -583,20 +764,30 @@
       syncToFirebase();
     }
 
+    function deleteGoal(id) {
+      appData.goals = appData.goals.filter(g => g.id !== id);
+      appData.tasks = appData.tasks.map(t => t.goalId === id ? { ...t, goalId: '' } : t);
+      syncToFirebase();
+    }
+
+    function openAddTaskModal() {
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+
+    function closeAddTaskModal() {
+      document.getElementById('modal-task').classList.add('hidden');
+    }
+
     function saveTask() {
       const title = document.getElementById('task-input-title').value.trim();
-      const priority = document.getElementById('task-input-priority').value;
-      const week = parseInt(document.getElementById('task-input-week').value) || 1;
-      const goal = document.getElementById('task-input-goal').value;
-
-      if (!title) return alert('Please enter a task title!');
+      if (!title) return alert('Task title required.');
 
       const newTask = {
         id: 'task_' + Date.now(),
-        title,
-        priority,
-        week,
-        goalId: goal,
+        title: title,
+        priority: document.getElementById('task-input-priority').value,
+        week: parseInt(document.getElementById('task-input-week').value) || appData.currentWeek,
+        goalId: document.getElementById('task-input-goal').value,
         completed: false,
         rolledOver: false,
         rolloverCount: 0
@@ -608,29 +799,31 @@
       document.getElementById('task-input-title').value = '';
     }
 
+    function openAddGoalModal() {
+      document.getElementById('modal-goal').classList.remove('hidden');
+    }
+
+    function closeAddGoalModal() {
+      document.getElementById('modal-goal').classList.add('hidden');
+    }
+
     function saveGoal() {
       const title = document.getElementById('goal-input-title').value.trim();
       const metric = document.getElementById('goal-input-metric').value.trim();
+      if (!title) return alert('Goal title required.');
 
-      if (!title) return alert('Please enter a goal title!');
+      const newGoal = {
+        id: 'goal_' + Date.now(),
+        title: title,
+        metric: metric
+      };
 
-      const newGoal = { id: 'goal_' + Date.now(), title, metric };
       appData.goals.push(newGoal);
       syncToFirebase();
       closeAddGoalModal();
       document.getElementById('goal-input-title').value = '';
       document.getElementById('goal-input-metric').value = '';
     }
-
-    function deleteGoal(id) {
-      appData.goals = appData.goals.filter(g => g.id !== id);
-      syncToFirebase();
-    }
-
-    function openAddTaskModal() { document.getElementById('modal-task').classList.remove('hidden'); }
-    function closeAddTaskModal() { document.getElementById('modal-task').classList.add('hidden'); }
-    function openAddGoalModal() { document.getElementById('modal-goal').classList.remove('hidden'); }
-    function closeAddGoalModal() { document.getElementById('modal-goal').classList.add('hidden'); }
 
     function populateWeekSelect() {
       const select = document.getElementById('task-input-week');
@@ -647,10 +840,10 @@
     function populateGoalSelect() {
       const select = document.getElementById('task-input-goal');
       select.innerHTML = '<option value="">General Execution</option>';
-      appData.goals.forEach(goal => {
+      appData.goals.forEach(g => {
         const opt = document.createElement('option');
-        opt.value = goal.id;
-        opt.innerText = goal.title;
+        opt.value = g.id;
+        opt.innerText = g.title;
         select.appendChild(opt);
       });
     }
@@ -659,72 +852,14 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `Warrior_OS_Backup_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchor.setAttribute("download", `warrior_os_backup_${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
     }
 
     function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    /* ========================================================= */
-    /* CHART.JS IMPLEMENTATION                                   */
-    /* ========================================================= */
-    function renderCharts() {
-      // Trend Chart
-      const ctxTrend = document.getElementById('weeklyTrendChart').getContext('2d');
-      if (trendChart) trendChart.destroy();
-      
-      trendChart = new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-          labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6', 'Wk 7', 'Wk 8', 'Wk 9', 'Wk 10', 'Wk 11', 'Wk 12'],
-          datasets: [{
-            label: 'Execution Rate %',
-            data: [85, 90, 78, 88, 92, 85, 95, 80, 88, 90, 94, 98],
-            borderColor: '#d32f2f',
-            backgroundColor: 'rgba(211, 47, 47, 0.1)',
-            fill: true,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-          },
-          plugins: { legend: { display: false } }
-        }
-      });
-
-      // Priority Breakdown Chart
-      const ctxPie = document.getElementById('priorityBreakdownChart').getContext('2d');
-      if (breakdownChart) breakdownChart.destroy();
-
-      const highCount = appData.tasks.filter(t => t.priority === 'high').length;
-      const medCount = appData.tasks.filter(t => t.priority === 'medium').length;
-      const lowCount = appData.tasks.filter(t => t.priority === 'low').length;
-
-      breakdownChart = new Chart(ctxPie, {
-        type: 'doughnut',
-        data: {
-          labels: ['High', 'Medium', 'Low'],
-          datasets: [{
-            data: [highCount || 1, medCount || 1, lowCount || 1],
-            backgroundColor: ['#b71c1c', '#ffb300', '#2e7d32'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8' } } }
-        }
-      });
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
   </script>
 </body>
